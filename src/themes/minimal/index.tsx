@@ -4,23 +4,14 @@
  */
 import Link from 'next/link';
 import TenantScripts from '@/components/public/TenantScripts';
-import {
-  HeroBackdrop,
-  HeroBookingForm,
-  RouteCard,
-  DriverCard,
-  WhyChooseUs,
-  HowToBook,
-  FaqList,
-  SectionHeading,
-} from '../shared';
+import { HeroBackdrop, HeroBookingForm, HomeSections } from '../shared';
 import type { ThemeModule, ThemeShellProps, ThemeHomeProps } from '../types';
 
 const NAV = [
-  { href: '/', label: 'Trang chủ' },
   { href: '/tim-chuyen', label: 'Tìm chuyến' },
-  { href: '/tai-xe-doi-tac', label: 'Đội ngũ tài xế' },
+  { href: '/#tuyen-pho-bien', label: 'Tuyến phổ biến' },
   { href: '/tintuc', label: 'Tin tức' },
+  { href: '/tai-xe-doi-tac', label: 'Dành cho tài xế' },
 ];
 
 function Shell({ tenant, showPoweredBy, children }: ThemeShellProps) {
@@ -45,8 +36,8 @@ function Shell({ tenant, showPoweredBy, children }: ThemeShellProps) {
                 ☎ {tenant.hotline}
               </a>
             )}
-            <Link href="/tai-khoan/ho-so" className="border border-slate-900 px-3 py-1.5 text-sm hover:bg-slate-900 hover:text-white">
-              Tài khoản
+            <Link href="/tai-khoan/dang-nhap" className="border border-slate-900 px-3 py-1.5 text-sm hover:bg-slate-900 hover:text-white">
+              Đăng nhập
             </Link>
           </div>
         </div>
@@ -75,7 +66,7 @@ function Shell({ tenant, showPoweredBy, children }: ThemeShellProps) {
   );
 }
 
-function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
+function Home({ tenant, content, routes }: ThemeHomeProps) {
   return (
     <div>
       {/* Hero: nền ảnh/slideshow banner + form đặt xe (cấu trúc chung) */}
@@ -96,52 +87,8 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
         </div>
       </section>
 
-      <div className="mx-auto max-w-5xl space-y-16 px-4 py-12">
-      {routes.length > 0 && (
-        <section>
-          <SectionHeading title="Tuyến phổ biến" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {routes.map((r) => (
-              <RouteCard key={r.id} route={r} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <SectionHeading title="Vì sao chọn chúng tôi" />
-        <WhyChooseUs items={content.whyChooseUs} />
-      </section>
-
-      <section>
-        <SectionHeading title="Cách đặt xe" />
-        <HowToBook steps={content.howToBook} />
-      </section>
-
-      {drivers.length > 0 && (
-        <section>
-          <SectionHeading title="Đội ngũ tài xế" subtitle="Tài xế đã được xác thực" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {drivers.map((d) => (
-              <DriverCard key={d.id} driver={d} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <SectionHeading title="Câu hỏi thường gặp" />
-        <FaqList items={content.faq} />
-      </section>
-
-      <section className="border-2 border-slate-900 p-8 text-center">
-        <h2 className="font-heading text-2xl font-bold">{content.driverCta.title}</h2>
-        <p className="mt-2 text-slate-500">{content.driverCta.desc}</p>
-        <Link href="/tai-xe-doi-tac" className="mt-4 inline-block bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white">
-          {content.driverCta.buttonLabel}
-        </Link>
-      </section>
-      </div>
+      {/* Thân trang dùng chung (đồng bộ với mọi theme) */}
+      <HomeSections tenant={tenant} content={content} routes={routes} />
     </div>
   );
 }

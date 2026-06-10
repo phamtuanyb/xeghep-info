@@ -1,0 +1,38 @@
+name: xeghep-info
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-xeghep_info}
+      POSTGRES_USER: ${POSTGRES_USER:-xeghep_info}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xeghep_info} -d ${POSTGRES_DB:-xeghep_info}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-xeghep_info}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-xeghep_info}?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER:-xeghep_info}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-xeghep_info}?schema=public
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "${APP_PORT:-3001}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
