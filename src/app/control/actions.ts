@@ -21,6 +21,17 @@ function str(formData: FormData, key: string): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+async function requireControlActor() {
+  try {
+    return await requireSuperAdmin();
+  } catch (error) {
+    if (error instanceof AuthError && (error.status === 401 || error.status === 403)) {
+      redirect('/control/login?error=' + encodeURIComponent('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'));
+    }
+    throw error;
+  }
+}
+
 // ---------------- Đăng nhập / Đăng xuất ----------------
 
 export async function loginAction(formData: FormData): Promise<void> {
@@ -51,7 +62,7 @@ export async function logoutAction(): Promise<void> {
 // ---------------- Quản lý tenant ----------------
 
 export async function createTenantAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
 
   const parsed = z
     .object({
@@ -116,7 +127,7 @@ export async function createTenantAction(formData: FormData): Promise<void> {
 }
 
 export async function setTenantStatusAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const status = str(formData, 'status') as 'ACTIVE' | 'LOCKED' | 'PENDING';
   if (!['ACTIVE', 'LOCKED', 'PENDING'].includes(status)) throw new AuthError(400, 'Trạng thái không hợp lệ.');
@@ -129,7 +140,7 @@ export async function setTenantStatusAction(formData: FormData): Promise<void> {
 }
 
 export async function changePlanAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const planId = str(formData, 'planId');
 
@@ -147,7 +158,7 @@ export async function changePlanAction(formData: FormData): Promise<void> {
 }
 
 export async function extendProAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const months = Math.max(1, Math.min(36, Number(str(formData, 'months')) || 12));
 
@@ -163,7 +174,7 @@ export async function extendProAction(formData: FormData): Promise<void> {
 }
 
 export async function resetOwnerPasswordAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const newPassword = str(formData, 'newPassword');
   if (newPassword.length < 6) throw new AuthError(400, 'Mật khẩu mới tối thiểu 6 ký tự.');
@@ -177,7 +188,7 @@ export async function resetOwnerPasswordAction(formData: FormData): Promise<void
 }
 
 export async function impersonateAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
 
   const owner = await dbAdmin.user.findFirst({ where: { tenantId, role: 'TENANT_ADMIN' } });
@@ -189,7 +200,7 @@ export async function impersonateAction(formData: FormData): Promise<void> {
 }
 
 export async function updateCrmAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const purchasedRaw = str(formData, 'purchasedAt');
 
@@ -219,7 +230,7 @@ const FEATURE_KEYS = [
 
 /** Ghi đè feature theo tenant (CLAUDE.md Mục 12.D). Mỗi feature: 'default' | 'on' | 'off'. */
 export async function updateFeatureOverridesAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
 
   const overrides: Record<string, boolean> = {};
@@ -237,7 +248,7 @@ export async function updateFeatureOverridesAction(formData: FormData): Promise<
 
 /** Thu phí Pro thủ công (CLAUDE.md Mục 12.D): ghi nhận khoản thu + (tùy chọn) gia hạn. */
 export async function recordProPaymentAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const tenantId = str(formData, 'tenantId');
   const amount = Math.max(0, Math.round(Number(str(formData, 'amount')) || 0));
   const months = Math.max(0, Math.min(36, Number(str(formData, 'months')) || 0));
@@ -270,7 +281,7 @@ export async function recordProPaymentAction(formData: FormData): Promise<void> 
 // ---------------- Quản lý gói ----------------
 
 export async function updatePlanAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const planId = str(formData, 'planId');
 
   const features: Record<string, boolean> = {};
@@ -302,7 +313,7 @@ export async function updatePlanAction(formData: FormData): Promise<void> {
 // ---------------- Mã kích hoạt (onboarding tự động) ----------------
 
 export async function createActivationCodesAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const planName = str(formData, 'planName') === 'PRO' ? 'PRO' : 'FREE';
   const quantity = Math.max(1, Math.min(100, Number(str(formData, 'quantity')) || 1));
   const note = str(formData, 'note');
@@ -313,7 +324,7 @@ export async function createActivationCodesAction(formData: FormData): Promise<v
 }
 
 export async function revokeActivationCodeAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const id = str(formData, 'id');
   const ac = await dbAdmin.activationCode.findUnique({ where: { id } });
   if (!ac) throw new AuthError(404, 'Không tìm thấy mã.');
@@ -327,7 +338,7 @@ export async function revokeActivationCodeAction(formData: FormData): Promise<vo
 // ---------------- Kho giao diện (theme) ----------------
 
 export async function upsertThemeAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const parsed = z
     .object({
       id: z.string().optional().default(''),
@@ -359,7 +370,7 @@ export async function upsertThemeAction(formData: FormData): Promise<void> {
 }
 
 export async function toggleThemeAction(formData: FormData): Promise<void> {
-  const actor = await requireSuperAdmin();
+  const actor = await requireControlActor();
   const themeId = str(formData, 'themeId');
   const theme = await dbAdmin.theme.findUnique({ where: { id: themeId } });
   if (!theme) throw new AuthError(404, 'Không tìm thấy giao diện.');
