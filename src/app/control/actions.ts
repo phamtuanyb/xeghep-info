@@ -94,7 +94,7 @@ export async function createTenantAction(formData: FormData): Promise<void> {
     redirect('/control/tenants?error=' + encodeURIComponent('Slug đã tồn tại, chọn slug khác.'));
   }
 
-  const plan = await dbAdmin.plan.findUnique({ where: { id: parsed.planId } });
+  const plan = await dbAdmin.plan.findUnique({ where: { id: parsed.data.planId } });
   if (!plan) {
     redirect('/control/tenants?error=' + encodeURIComponent('Gói không hợp lệ.'));
   }
