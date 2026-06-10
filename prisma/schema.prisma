@@ -1,0 +1,390 @@
+// Prisma schema — Nền tảng website xe ghép (white-label multi-tenant SaaS)
+// Bám sát CLAUDE.md Mục 6. NGUYÊN TẮC BẤT BIẾN:
+//  - Mọi bảng nghiệp vụ PHẢI có cột tenantId (cô lập tenant ở tầng dữ liệu).
+//  - Mọi ràng buộc UNIQUE phải kèm tenantId (hai tenant được phép trùng slug/email/code).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // url: kết nối runtime, đi qua PgBouncer ở tải cao (?pgbouncer=true&connection_limit=1)
+  url       = env("DATABASE_URL")
+  // directUrl: kết nối TRỰC TIẾP (bỏ qua pooler) cho `prisma migrate`/introspect.
+  // Local: trỏ cùng DATABASE_URL. Xem docs/deploy-high-load.md.
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// LỚP SaaS (cấp nền tảng) — KHÔNG cô lập theo tenant
+// ============================================================
+
+model Tenant {
+  id           String       @id @default(cuid())
+  brandName    String // tên thương hiệu hiển thị
+  slug         String       @unique // subdomain: <slug>.<ROOT_DOMAIN>
+  customDomain String?      @unique // tên miền riêng (gói Pro)
+  customDomainVerified Boolean @default(false) // đã xác thực DNS trỏ đúng chưa
+  status       TenantStatus @default(PENDING) // PENDING | ACTIVE | LOCKED
+  themeId      String? // theme đang chọn
+  logoUrl      String?
+  primaryColor String?      @default("#1565C0")
+  hotline      String?
+  hidePoweredBy Boolean     @default(false) // chỉ Pro được bật (ẩn footer); kiểm tra ở server
+  onboardedAt   DateTime? // null = chưa qua wizard khởi tạo (Mục 14 M4)
+  createdAt    DateTime     @default(now())
+
+  // CRM-lite (Control Plane — CLAUDE.md Mục 12.D): hồ sơ khách mua phần mềm MKT
+  ownerName     String?
+  ownerEmail    String?
+  ownerPhone    String?
+  purchasedAt   DateTime? // ngày mua MKT
+  internalNotes String? // ghi chú nội bộ của MKT
+
+  // Ghi đè feature theo từng tenant (CLAUDE.md Mục 12.D): { coupons: true, ... }
+  // Override THẮNG feature mặc định của gói khi key tồn tại.
+  featureOverrides Json?
+
+  subscription Subscription?
+  theme        Theme?        @relation(fields: [themeId], references: [id])
+
+  // quan hệ ngược tới các bảng nghiệp vụ
+  users         User[]
+  drivers       Driver[]
+  routes        Route[]
+  trips         Trip[]
+  bookings      Booking[]
+  transactions  Transaction[]
+  coupons       Coupon[]
+  articles      Article[]
+  reviews       Review[]
+  complaints    Complaint[]
+  homeContent   HomeContent?
+  setting       TenantSetting?
+  auditLogs     AuditLog[]
+  proPayments   ProPayment[]
+
+  @@index([status])
+}
+
+enum TenantStatus {
+  PENDING
+  ACTIVE
+  LOCKED
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          PlanName // FREE | PRO
+  maxRoutes     Int // giới hạn tuyến (-1 = không giới hạn)
+  maxDrivers    Int // giới hạn tài xế (-1 = không giới hạn)
+  priceMonthly  Int            @default(0) // giá/tháng (VND) — dùng tính doanh thu Pro
+  features      Json // danh sách feature flag bật
+  subscriptions Subscription[]
+
+  @@unique([name])
+}
+
+enum PlanName {
+  FREE
+  PRO
+}
+
+model Subscription {
+  id        String    @id @default(cuid())
+  tenantId  String    @unique
+  planId    String
+  status    String    @default("active")
+  startedAt DateTime  @default(now())
+  expiresAt DateTime? // null với Free
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan      Plan      @relation(fields: [planId], references: [id])
+}
+
+model Theme {
+  id       String   @id @default(cuid())
+  key      String   @unique // "default", "theme-a", ...
+  name     String // tên hiển thị tiếng Việt
+  minPlan  PlanName @default(FREE) // gói tối thiểu được dùng theme này
+  isActive Boolean  @default(true)
+  tenants  Tenant[]
+}
+
+model PlatformUser {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  password  String
+  role      PlatformRole @default(PLATFORM_STAFF)
+  createdAt DateTime     @default(now())
+}
+
+enum PlatformRole {
+  SUPER_ADMIN
+  PLATFORM_STAFF
+}
+
+model PlatformAuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  tenantId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([actorId])
+}
+
+// Mã kích hoạt cấp tenant (PHA 2 onboarding tự động). Khách mua MKT nhập mã ->
+// tự tạo tenant + subdomain. Bảng cấp nền tảng — chỉ truy cập qua dbAdmin.
+model ActivationCode {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  planName       PlanName  @default(FREE) // gói cấp khi kích hoạt
+  status         String    @default("active") // active | used | revoked
+  usedByTenantId String?
+  note           String?
+  createdBy      String // PlatformUser id
+  createdAt      DateTime  @default(now())
+  usedAt         DateTime?
+
+  @@index([status])
+}
+
+// Thu phí Pro thủ công (CLAUDE.md Mục 12.D). Bảng cấp nền tảng — CHỈ truy cập qua
+// dbAdmin trong Control Plane, KHÔNG nằm trong phạm vi cô lập tenant (db).
+model ProPayment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  amount    Int // số tiền (VND)
+  method    String   @default("bank") // bank | cash | other
+  months    Int      @default(0) // số tháng gia hạn kèm theo
+  note      String?
+  createdBy String // PlatformUser id
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// LỚP NGHIỆP VỤ — đều có tenantId (phạm vi cô lập tenant)
+// ============================================================
+
+model User {
+  id        String     @id @default(cuid())
+  tenantId  String
+  email     String
+  password  String
+  fullName  String?
+  phone     String?
+  role      TenantRole
+  status    String     @default("active") // active | locked
+  createdAt DateTime   @default(now())
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+enum TenantRole {
+  TENANT_ADMIN
+  TENANT_OPERATOR
+  DRIVER
+  CUSTOMER
+}
+
+model Driver {
+  id          String   @id @default(cuid())
+  tenantId    String
+  userId      String?
+  fullName    String
+  avatarUrl   String?
+  carType     String?
+  carColor    String?
+  plateNumber String?
+  kycStatus   String   @default("pending") // pending | approved | rejected
+  cccdUrl     String?
+  licenseUrl  String?
+  registryUrl String?
+  rating      Float    @default(5)
+  tripCount   Int      @default(0)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trips       Trip[]
+
+  @@index([tenantId])
+}
+
+model Route {
+  id           String  @id @default(cuid())
+  tenantId     String
+  fromName     String
+  toName       String
+  slug         String
+  priceFrom    Int
+  distanceKm   Int?
+  durationText String?
+  icon         String?
+  tenant       Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trips        Trip[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model Trip {
+  id           String   @id @default(cuid())
+  tenantId     String
+  routeId      String
+  driverId     String?
+  departAt     DateTime
+  seatsTotal   Int
+  seatsLeft    Int
+  pricePerSeat Int
+  serviceType  String // ghep_1 | ghep_2 | bao_5 | bao_7 | gui_do
+  status       String   @default("open")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  route        Route    @relation(fields: [routeId], references: [id])
+  driver       Driver?  @relation(fields: [driverId], references: [id])
+  bookings     Booking[]
+
+  @@index([tenantId])
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  tenantId      String
+  customerId    String? // User (CUSTOMER) id nếu khách đã đăng nhập — dùng cho "Chuyến của tôi"
+  tripId        String?
+  fromName      String?
+  toName        String?
+  pickupAddr    String? // điểm đón
+  dropoffAddr   String? // nơi trả khách
+  departDate    DateTime? // ngày đi
+  customerName  String
+  customerPhone String
+  seats         Int      @default(1)
+  serviceType   String?
+  couponCode    String?
+  note          String?
+  status        String   @default("new") // new | confirmed | done | cancelled
+  ip            String?
+  device        String?
+  createdAt     DateTime @default(now())
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trip          Trip?    @relation(fields: [tripId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, customerId])
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  tenantId   String
+  bookingId  String?
+  driverId   String?
+  amount     Int
+  commission Int // hoa hồng (vd 12%) tính ở server
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Coupon {
+  id          String    @id @default(cuid())
+  tenantId    String
+  code        String
+  type        String // percent | fixed
+  value       Int
+  minOrder    Int?
+  maxDiscount Int?
+  usageLimit  Int?
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  tenantId    String
+  title       String
+  slug        String
+  coverUrl    String?
+  contentHtml String // ĐÃ sanitize trước khi lưu
+  status      String    @default("draft") // draft | published
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  tenantId   String
+  driverId   String?
+  rating     Int
+  content    String?
+  authorName String?
+  createdAt  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Complaint {
+  id        String   @id @default(cuid())
+  tenantId  String
+  bookingId String?
+  content   String
+  status    String   @default("open")
+  refunded  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model HomeContent {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique
+  data      Json // banner slideshow, hero, vì sao, cách đặt, FAQ, CTA
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantSetting {
+  id              String  @id @default(cuid())
+  tenantId        String  @unique
+  telegramEnabled Boolean @default(false)
+  telegramToken   String?
+  telegramChatId  String?
+  seoTitle        String?
+  seoDescription  String?
+  seoKeywords     String?
+  ga4Id           String?
+  searchConsoleId String?
+  allowIndex      Boolean @default(true)
+  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  actorId   String
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}

@@ -1,0 +1,40 @@
+# ============================================================
+# Caddy — reverse proxy + TLS tự động cho Nền tảng xe ghép (VPS)
+# Caddy đứng trước Next.js (node chạy ở 127.0.0.1:3000).
+#
+# Cấp chứng chỉ HTTPS tự động cho:
+#   - xeghep.info, www.xeghep.info, control.xeghep.info
+#   - mọi subdomain tenant:  <slug>.xeghep.info  (Free & Pro)
+#   - tên miền riêng của khách Pro (apex + www)   <-- qua on-demand TLS
+#
+# On-demand TLS: cert chỉ được xin khi có request tới host đó VÀ /api/tls-check
+# trả 2xx (chặn kẻ xấu trỏ domain rác vào VPS ép xin cert hàng loạt).
+#
+# Yêu cầu: mở port 80 + 443; DNS đã trỏ (xem DEPLOY.md). Đổi email bên dưới.
+# ============================================================
+
+{
+	email admin@xeghep.info
+	on_demand_tls {
+		ask http://127.0.0.1:3000/api/tls-check
+	}
+}
+
+# Tất cả host (subdomain nền tảng + tên miền riêng) — TLS on-demand qua cổng kiểm soát.
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	# Chuyển tiếp host gốc để middleware/Next.js phân giải tenant theo Host.
+	reverse_proxy 127.0.0.1:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+# HTTP -> HTTPS (Caddy vẫn tự trả lời thử thách ACME trên :80 trước khi redirect).
+http:// {
+	redir https://{host}{uri} permanent
+}
