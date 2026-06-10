@@ -84,6 +84,11 @@ export async function createTenantAction(formData: FormData): Promise<void> {
       hotline: str(formData, 'hotline'),
     });
 
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? 'Thông tin tạo người thuê không hợp lệ.';
+    redirect('/control/tenants?error=' + encodeURIComponent(message));
+  }
+
   const existing = await dbAdmin.tenant.findUnique({ where: { slug: parsed.slug } });
   if (existing) {
     redirect('/control/tenants?error=' + encodeURIComponent('Slug đã tồn tại, chọn slug khác.'));
@@ -95,34 +100,40 @@ export async function createTenantAction(formData: FormData): Promise<void> {
   }
   const defaultTheme = await dbAdmin.theme.findUnique({ where: { key: 'default' } });
 
-  const tenant = await dbAdmin.tenant.create({
-    data: {
-      brandName: parsed.brandName,
-      slug: parsed.slug,
-      status: 'ACTIVE',
-      hotline: parsed.hotline || null,
-      themeId: defaultTheme?.id ?? null,
-      ownerName: parsed.ownerName || null,
-      ownerEmail: parsed.ownerEmail,
-      purchasedAt: new Date(),
-      subscription: {
-        create: {
-          planId: plan!.id,
-          expiresAt: plan!.name === 'PRO' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : null,
+  let tenant;
+  try {
+    tenant = await dbAdmin.tenant.create({
+      data: {
+        brandName: parsed.data.brandName,
+        slug: parsed.data.slug,
+        status: 'ACTIVE',
+        hotline: parsed.data.hotline || null,
+        themeId: defaultTheme?.id ?? null,
+        ownerName: parsed.data.ownerName || null,
+        ownerEmail: parsed.data.ownerEmail,
+        purchasedAt: new Date(),
+        subscription: {
+          create: {
+            planId: plan.id,
+            expiresAt: plan.name === 'PRO' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : null,
+          },
+        },
+        users: {
+          create: {
+            email: parsed.data.ownerEmail,
+            password: await hashPassword(parsed.data.ownerPassword),
+            fullName: parsed.data.ownerName || `Chủ xe ${parsed.data.brandName}`,
+            role: 'TENANT_ADMIN',
+          },
         },
       },
-      users: {
-        create: {
-          email: parsed.ownerEmail,
-          password: await hashPassword(parsed.ownerPassword),
-          fullName: parsed.ownerName || `Chủ xe ${parsed.brandName}`,
-          role: 'TENANT_ADMIN',
-        },
-      },
-    },
-  });
+    });
+  } catch (error) {
+    if (error instanceof AuthError) throw error;
+    redirect('/control/tenants?error=' + encodeURIComponent('Không thể tạo người thuê mới. Vui lòng kiểm tra lại thông tin.'));
+  }
 
-  await logPlatform(actor.userId, 'CREATE_TENANT', tenant.id, { slug: parsed.slug, plan: plan!.name });
+  await logPlatform(actor.userId, 'CREATE_TENANT', tenant.id, { slug: parsed.data.slug, plan: plan.name });
   redirect(`/control/tenants/${tenant.id}`);
 }
 
