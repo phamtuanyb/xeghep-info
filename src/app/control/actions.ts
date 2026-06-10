@@ -74,7 +74,7 @@ export async function createTenantAction(formData: FormData): Promise<void> {
       ownerPassword: z.string().min(6, 'Mật khẩu chủ xe tối thiểu 6 ký tự'),
       hotline: z.string().optional().default(''),
     })
-    .parse({
+    .safeParse({
       brandName: str(formData, 'brandName'),
       slug: str(formData, 'slug'),
       planId: str(formData, 'planId'),
