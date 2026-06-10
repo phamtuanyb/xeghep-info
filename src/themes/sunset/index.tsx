@@ -81,7 +81,7 @@ function Shell({ tenant, showPoweredBy, children }: ThemeShellProps) {
   );
 }
 
-function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
+function Home({ tenant, content, routes }: ThemeHomeProps) {
   return (
     <div>
       {/* Hero: nền ảnh/slideshow banner (gradient hoàng hôn dự phòng) + form đặt xe */}
