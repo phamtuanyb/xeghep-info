@@ -89,7 +89,7 @@ export async function createTenantAction(formData: FormData): Promise<void> {
     redirect('/control/tenants?error=' + encodeURIComponent(message));
   }
 
-  const existing = await dbAdmin.tenant.findUnique({ where: { slug: parsed.slug } });
+  const existing = await dbAdmin.tenant.findUnique({ where: { slug: parsed.data.slug } });
   if (existing) {
     redirect('/control/tenants?error=' + encodeURIComponent('Slug đã tồn tại, chọn slug khác.'));
   }
