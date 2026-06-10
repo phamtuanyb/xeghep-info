@@ -30,6 +30,15 @@ function str(formData: FormData, key: string): string {
   return typeof v === 'string' ? v.trim() : '';
 }
 
+/**
+ * Chỉ cho phép redirect tới ĐƯỜNG DẪN NỘI BỘ (chống open-redirect). Giá trị từ client
+ * phải bắt đầu bằng một dấu '/' (không phải '//' protocol-relative, không phải '/\').
+ * Khác đi -> dùng fallback.
+ */
+function safeRedirect(value: string, fallback: string): string {
+  return /^\/(?![/\\])/.test(value) ? value : fallback;
+}
+
 function reqMeta(): { ip: string | null; device: string | null } {
   const h = headers();
   const ip = (h.get('x-forwarded-for') ?? '').split(',')[0]?.trim() || h.get('x-real-ip') || null;
@@ -58,7 +67,7 @@ const SERVICE_LABELS: Record<string, string> = {
 export async function createLeadAction(formData: FormData): Promise<void> {
   // redirectTo: nơi quay lại khi lỗi/thành công (mặc định /tim-chuyen). Form hero ở
   // trang chủ truyền '/' để giữ khách ở lại trang chủ sau khi gửi.
-  const redirectTo = str(formData, 'redirectTo') || '/tim-chuyen';
+  const redirectTo = safeRedirect(str(formData, 'redirectTo'), '/tim-chuyen');
   const sep = redirectTo.includes('?') ? '&' : '?';
   await guardRate('lead', 15, 60, redirectTo);
   const parsed = z

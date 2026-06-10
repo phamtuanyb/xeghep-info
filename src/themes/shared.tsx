@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 import HeroSlideshowBg from '@/components/public/HeroSlideshowBg';
 import { createLeadAction } from '@/app/public-actions';
 import type { HomeRoute, HomeDriver } from './types';
-import type { Banner, FaqItem, HowStep, WhyItem } from '@/lib/home-content';
+import type { Banner, FaqItem, HowStep, WhyItem, HomeContentData } from '@/lib/home-content';
 import { maskPlate } from '@/lib/mask';
 
 export function formatVnd(n: number): string {
@@ -257,6 +257,213 @@ export function HeroBookingForm({
         </p>
       )}
     </div>
+  );
+}
+
+/* ------------------ THÂN TRANG CHỦ DÙNG CHUNG (mọi theme) ------------------ */
+
+/** Thẻ tuyến lớn có ảnh/khoảng cách/giá/nút (kiểu landing). */
+export function RouteBigCard({ route, highlight }: { route: HomeRoute; highlight?: boolean }) {
+  const meta = [route.distanceKm ? `${route.distanceKm} km` : null, route.durationText]
+    .filter(Boolean)
+    .join(' · ');
+  const href = `/tim-chuyen?from=${encodeURIComponent(route.fromName)}&to=${encodeURIComponent(route.toName)}`;
+  return (
+    <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md">
+      <div className="relative flex h-32 items-center justify-center bg-gradient-to-br from-[var(--brand)] to-slate-800 text-5xl text-white/90">
+        {route.icon ?? '🚗'}
+        {highlight && (
+          <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-[color:var(--brand)] shadow">
+            Hot Route
+          </span>
+        )}
+      </div>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="font-semibold text-slate-800">
+              {route.fromName} → {route.toName}
+            </div>
+            {meta && <div className="mt-0.5 text-xs text-slate-400">{meta}</div>}
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-bold text-[color:var(--brand)]">{formatVnd(route.priceFrom)}</div>
+            <div className="text-[11px] text-slate-400">mỗi ghế</div>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center gap-2 text-[11px] font-medium uppercase text-slate-400">
+          <span className="h-2 w-2 rounded-full bg-[var(--brand)]" />
+          <span className="flex-1 truncate">{route.fromName}</span>
+          <span className="flex-1 border-t border-dashed border-slate-200" />
+          <span className="flex-1 truncate text-right">{route.toName}</span>
+          <span className="h-2 w-2 rounded-full bg-slate-300" />
+        </div>
+        <Link
+          href={href}
+          className="mt-4 block rounded-xl border border-[color:var(--brand)] py-2.5 text-center text-sm font-semibold text-[color:var(--brand)] hover:bg-[color:var(--brand)]/5"
+        >
+          Xem chuyến →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Toàn bộ thân trang chủ (dưới hero): thẻ tin cậy, tuyến phổ biến, các bước, CTA tài
+ * xế, FAQ. Dùng CHUNG cho mọi theme để Free/Pro nhất quán; màu nhấn theo --brand nên
+ * mỗi tenant vẫn giữ thương hiệu. Theme chỉ khác nhau ở Shell (header/footer) + Hero.
+ */
+export function HomeSections({
+  tenant,
+  content,
+  routes,
+}: {
+  tenant: { hotline: string | null };
+  content: HomeContentData;
+  routes: HomeRoute[];
+}) {
+  return (
+    <>
+      {/* THẺ TIN CẬY */}
+      {content.whyChooseUs.length > 0 && (
+        <section className="bg-slate-50">
+          <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 px-4 py-12">
+            {content.whyChooseUs.slice(0, 4).map((it, i) => (
+              <div
+                key={i}
+                className="flex w-full flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-md sm:w-[250px]"
+              >
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--brand)]/10 text-2xl text-[color:var(--brand)]">
+                  {it.icon ?? '✅'}
+                </div>
+                <div className="font-semibold text-slate-800">{it.title}</div>
+                {it.desc && <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{it.desc}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* TUYẾN PHỔ BIẾN */}
+      {routes.length > 0 && (
+        <section id="tuyen-pho-bien" className="bg-slate-50 py-14">
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="mb-8 text-center">
+              <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--brand)]">Dịch vụ nổi bật</div>
+              <h2 className="mt-1 font-heading text-2xl font-bold text-slate-800 md:text-3xl">Các tuyến phổ biến</h2>
+              <p className="mt-2 text-slate-500">Chọn nhanh tuyến bạn cần, đặt chỗ ngay trong ngày.</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6">
+              {routes.map((r, i) => (
+                <div key={r.id} className="w-full sm:w-[340px]">
+                  <RouteBigCard route={r} highlight={i === 0} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CÁC BƯỚC */}
+      {content.howToBook.length > 0 && (
+        <section id="cach-dat" className="bg-white py-14">
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="mb-10 text-center">
+              <h2 className="font-heading text-2xl font-bold text-slate-800 md:text-3xl">
+                Đặt xe ghép chỉ với {content.howToBook.length} bước
+              </h2>
+              <p className="mt-2 text-slate-500">Nhanh chóng, đơn giản và an toàn tuyệt đối cho hành trình của bạn.</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-6">
+              {content.howToBook.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex w-full flex-col items-center rounded-2xl border border-slate-100 bg-slate-50 p-6 text-center sm:w-[230px]"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brand)] text-base font-bold text-white shadow-sm">
+                    {i + 1}
+                  </div>
+                  <div className="mt-3 font-semibold text-slate-800">{s.title}</div>
+                  {s.desc && <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{s.desc}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CTA TÀI XẾ */}
+      <section className="bg-slate-50 py-14">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="grid items-center gap-8 overflow-hidden rounded-3xl bg-[var(--brand)] p-8 text-white md:grid-cols-2 md:p-12">
+            <div>
+              <h2 className="font-heading text-2xl font-bold md:text-3xl">{content.driverCta.title}</h2>
+              <p className="mt-3 max-w-md text-white/90">{content.driverCta.desc}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/tai-xe-doi-tac"
+                  className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[color:var(--brand)] hover:opacity-90"
+                >
+                  {content.driverCta.buttonLabel}
+                </Link>
+                <Link
+                  href="/tai-xe/dang-nhap"
+                  className="rounded-full border border-white/60 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                >
+                  Đăng nhập tài xế
+                </Link>
+              </div>
+              <p className="mt-4 text-sm text-white/80">★ Chỉ chiết khấu hoa hồng minh bạch sau mỗi chuyến hoàn thành.</p>
+            </div>
+            <div className="hidden items-center justify-center md:flex">
+              <div className="flex h-44 w-full items-center justify-center rounded-2xl bg-white/10 text-6xl ring-1 ring-white/20">
+                🚗
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ + gọi tổng đài */}
+      {content.faq.length > 0 && (
+        <section id="faq" className="bg-white py-14">
+          <div className="mx-auto max-w-3xl px-4">
+            <div className="mb-8 text-center">
+              <h2 className="font-heading text-2xl font-bold text-slate-800 md:text-3xl">Bạn cần biết điều gì?</h2>
+              <p className="mt-2 text-slate-500">Giải đáp nhanh các thắc mắc phổ biến khi đặt xe.</p>
+            </div>
+            <div className="space-y-3">
+              {content.faq.map((f, i) => (
+                <details
+                  key={i}
+                  open={i === 0}
+                  className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 open:bg-white open:shadow-sm"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-slate-800">
+                    {f.q}
+                    <span className="text-slate-400 transition group-open:rotate-180">⌄</span>
+                  </summary>
+                  <p className="mt-2 text-sm text-slate-500">{f.a}</p>
+                </details>
+              ))}
+            </div>
+
+            {tenant.hotline && (
+              <div className="mt-8 rounded-2xl bg-[color:var(--brand)]/10 p-6 text-center">
+                <div className="font-semibold text-slate-700">Còn thắc mắc khác?</div>
+                <a
+                  href={`tel:${tenant.hotline}`}
+                  className="mt-3 inline-block rounded-full bg-[var(--brand)] px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  ☎ Gọi tổng đài {tenant.hotline}
+                </a>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+    </>
   );
 }
 
