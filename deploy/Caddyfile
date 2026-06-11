@@ -1,6 +1,6 @@
 # ============================================================
 # Caddy — reverse proxy + TLS tự động cho Nền tảng xe ghép (VPS)
-# Caddy đứng trước Next.js (node chạy ở 127.0.0.1:3000).
+# Caddy đứng trước Next.js (node chạy ở 127.0.0.1:3001).
 #
 # Cấp chứng chỉ HTTPS tự động cho:
 #   - xeghep.info, www.xeghep.info, control.xeghep.info
@@ -16,7 +16,7 @@
 {
 	email admin@xeghep.info
 	on_demand_tls {
-		ask http://127.0.0.1:3000/api/tls-check
+		ask http://127.0.0.1:3001/api/tls-check
 	}
 }
 
@@ -27,7 +27,7 @@ https:// {
 	}
 	encode zstd gzip
 	# Chuyển tiếp host gốc để middleware/Next.js phân giải tenant theo Host.
-	reverse_proxy 127.0.0.1:3000 {
+	reverse_proxy 127.0.0.1:3001 {
 		header_up Host {host}
 		header_up X-Forwarded-For {remote_host}
 		header_up X-Forwarded-Proto {scheme}

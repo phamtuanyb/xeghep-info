@@ -128,7 +128,8 @@ export async function createLeadAction(formData: FormData): Promise<void> {
     });
   });
 
-  redirect(redirectTo + sep + 'sent=1');
+  // Thành công -> trang thông báo riêng (rõ ràng, không phụ thuộc trang nguồn).
+  redirect('/dat-xe-thanh-cong');
 }
 
 // ---------------- Đặt chỗ từ chi tiết chuyến ----------------

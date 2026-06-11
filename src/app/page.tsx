@@ -3,14 +3,30 @@
  * Dữ liệu lấy qua Data Cache theo tenant (PHA 2 tối ưu tải cao) — xem public-cache.ts.
  */
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { getPublicTenant } from '@/lib/public-tenant';
 import { getHomeBundle } from '@/lib/public-cache';
 import { getTheme } from '@/themes';
 import { buildTenantMetadata } from '@/lib/seo';
+import PlatformLanding from '@/components/public/PlatformLanding';
 
 export const dynamic = 'force-dynamic';
 
-export function generateMetadata(): Promise<Metadata> {
+/** True nếu đang truy cập TÊN MIỀN GỐC nền tảng (xeghep.info / www) — không phải subdomain tenant. */
+function isPlatformRootHost(): boolean {
+  const h = headers();
+  const host = (h.get('x-tenant-host') ?? h.get('host') ?? '').split(':')[0]!.toLowerCase();
+  const root = (process.env.ROOT_DOMAIN ?? '').toLowerCase();
+  return !!root && (host === root || host === `www.${root}`);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  if (isPlatformRootHost()) {
+    return {
+      title: 'Nền tảng website xe ghép — xeghep.info',
+      description: 'Website xe ghép thương hiệu riêng cho nhà xe: nhận đặt xe, quản lý tài xế & tuyến, chuẩn SEO. Lên sóng trong vài phút.',
+    };
+  }
   return buildTenantMetadata({ path: '/' });
 }
 
@@ -19,6 +35,9 @@ export default async function HomePage({
 }: {
   searchParams: { sent?: string; error?: string };
 }) {
+  // Tên miền gốc -> trang giới thiệu nền tảng (marketing MKT). Subdomain -> trang chủ nhà xe.
+  if (isPlatformRootHost()) return <PlatformLanding />;
+
   const tenant = await getPublicTenant();
   const bundle = await getHomeBundle(tenant.id);
 

@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { renderAdmin } from '@/lib/admin-render';
 import { parseHomeContent } from '@/lib/home-content';
 import { Card, FlashOk } from '@/components/admin/ui';
+import ImageUploader from '@/components/admin/ImageUploader';
 import { updateHomeContentAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -24,9 +25,34 @@ export default async function HomeCmsPage({ searchParams }: { searchParams: { sa
         <form action={updateHomeContentAction} className="space-y-6">
           <Card title="Hero (khối đầu trang)">
             <div className="grid gap-3">
-              <Field name="hero_title" label="Tiêu đề" defaultValue={c.hero.title} />
-              <Field name="hero_subtitle" label="Mô tả" defaultValue={c.hero.subtitle} />
-              <Field name="hero_cta" label="Nhãn nút" defaultValue={c.hero.ctaLabel} />
+              <Field name="hero_badge" label="Nhãn nhỏ phía trên (badge)" defaultValue={c.hero.badge} />
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Tiêu đề lớn (mỗi dòng một dòng — dòng cuối tô màu nhấn)</label>
+                <textarea
+                  name="hero_title"
+                  rows={3}
+                  defaultValue={c.hero.title}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <Field name="hero_subtitle" label="Mô tả ngắn" defaultValue={c.hero.subtitle} />
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field name="hero_cta" label="Nút chính" defaultValue={c.hero.ctaLabel} />
+                <Field name="hero_cta2" label="Nút phụ" defaultValue={c.hero.ctaSecondaryLabel} />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Số liệu nổi bật (3 ô)</label>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="space-y-2 rounded-lg border border-slate-100 p-3">
+                      <Field name={`hero_stat_value_${i}`} label={`Số liệu ${i + 1}`} defaultValue={c.hero.stats[i]?.value ?? ''} />
+                      <Field name={`hero_stat_label_${i}`} label="Mô tả" defaultValue={c.hero.stats[i]?.label ?? ''} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <Field
                 name="hero_image"
                 label="Ảnh nền hero (URL) — để trống sẽ dùng nền tối mặc định"
@@ -84,6 +110,32 @@ export default async function HomeCmsPage({ searchParams }: { searchParams: { sa
                   <Field name={`faq_a_${i}`} label="Trả lời" defaultValue={c.faq[i]?.a ?? ''} />
                 </div>
               ))}
+            </div>
+          </Card>
+
+          <Card title="Về chúng tôi (khối giới thiệu)">
+            <div className="grid gap-3">
+              <Field name="about_eyebrow" label="Nhãn nhỏ phía trên" defaultValue={c.about.eyebrow} />
+              <Field name="about_title" label="Tiêu đề" defaultValue={c.about.title} />
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Mô tả</label>
+                <textarea
+                  name="about_description"
+                  rows={3}
+                  defaultValue={c.about.description}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-500">Danh sách điểm nổi bật (mỗi dòng một ý)</label>
+                <textarea
+                  name="about_bullets"
+                  rows={5}
+                  defaultValue={c.about.bullets.join('\n')}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <ImageUploader name="about_images" initial={c.about.images} label="Ảnh minh họa (nhiều ảnh — tự xoay vòng)" />
             </div>
           </Card>
 

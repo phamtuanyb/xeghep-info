@@ -40,3 +40,10 @@ prisma/*.db
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Ảnh tải lên runtime (lưu theo tenant, không commit)
+/public/uploads/
+# Ảnh bài viết admin tải lên (theo tenant) — giữ README, bỏ ảnh
+/public/article-images/*/
+# Dữ liệu runtime khi deploy Docker (DB dump, volume ảnh)
+/data/

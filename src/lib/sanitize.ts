@@ -18,6 +18,10 @@ export function sanitizeArticleHtml(dirty: string): string {
     allowedAttributes: {
       a: ['href', 'title', 'target', 'rel'],
       img: ['src', 'alt', 'title', 'width', 'height'],
+      // Giữ cấu trúc bảng từ Word: ô gộp dòng/cột + canh chỉnh.
+      td: ['colspan', 'rowspan', 'align', 'valign'],
+      th: ['colspan', 'rowspan', 'align', 'valign'],
+      table: ['border'],
       '*': ['style'],
     },
     allowedSchemes: ['http', 'https', 'mailto', 'data'],

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import TenantScripts from '@/components/public/TenantScripts';
+import ImageSlideshow from '@/components/public/ImageSlideshow';
 import { createLeadAction } from '@/app/public-actions';
 import { HeroBackdrop, formatVnd } from '../shared';
 import type { ThemeModule, ThemeShellProps, ThemeHomeProps, HomeRoute } from '../types';
@@ -146,19 +147,10 @@ function Shell({ tenant, showPoweredBy, children }: ThemeShellProps) {
 function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
   const featuredRoutes = routes.slice(0, 6);
   const featureItems = content.whyChooseUs.slice(0, 4);
-  const heroStats = [
-    { value: `${Math.max(600, featuredRoutes.length * 100)}+`, label: 'chuyến mỗi ngày' },
-    { value: '4.9★', label: 'từ 12.000 đánh giá' },
-    { value: `${Math.max(12, featuredRoutes.length * 3)}`, label: 'tỉnh thành phủ sóng' },
-  ];
-  const bullets = [
-    'Đặt xe online 24/7',
-    'Đón trả tận nơi',
-    'Giá cả rõ ràng, minh bạch',
-    'Hàng trăm tuyến xe mỗi ngày',
-    'Đội ngũ hỗ trợ chuyên nghiệp',
-  ];
-  const visualImage = content.banners[0]?.imageUrl || content.hero.imageUrl || null;
+  const heroStats = content.hero.stats;
+  const titleLines = content.hero.title.split('\n').map((s) => s.trim()).filter(Boolean);
+  const about = content.about;
+  const aboutImages = about.images.length ? about.images : [content.banners[0]?.imageUrl, content.hero.imageUrl].filter(Boolean) as string[];
   const review = drivers[0];
 
   return (
@@ -180,14 +172,21 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
 
         <div className="relative mx-auto grid max-w-6xl items-start gap-10 px-4 pb-10 pt-8 lg:grid-cols-[1.05fr_0.95fr] lg:pt-12">
           <div className="pt-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#FFD63D] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[#14325D] shadow-[0_8px_22px_rgba(255,214,61,0.32)]">
-              <span>$</span>
-              <span>Xe ghép toàn quốc</span>
-            </div>
-            <h1 className="mt-5 max-w-3xl font-heading text-3xl font-extrabold uppercase leading-[1.02] tracking-tight md:text-5xl">
-              <span className="block">Đặt xe</span>
-              <span className="block">Nhanh chóng</span>
-              <span className="block text-[#FF9A1F]">Đón trả tận nơi</span>
+            {content.hero.badge && (
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#FFD63D] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[#14325D] shadow-[0_8px_22px_rgba(255,214,61,0.32)]">
+                <span>$</span>
+                <span>{content.hero.badge}</span>
+              </div>
+            )}
+            <h1 className="mt-5 max-w-3xl font-heading text-3xl font-extrabold uppercase tracking-tight md:text-5xl">
+              {titleLines.map((line, i) => (
+                <span
+                  key={i}
+                  className={`block leading-[1.5] ${i === titleLines.length - 1 && titleLines.length > 1 ? 'text-[#FF9A1F]' : ''}`}
+                >
+                  {line}
+                </span>
+              ))}
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/88">
               {content.hero.subtitle || 'Kết nối hành khách với hàng trăm nhà xe uy tín. Đặt chuyến chỉ trong 1 phút — minh bạch, đúng giờ, tiện lợi.'}
@@ -210,14 +209,16 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
                 href="/tim-chuyen"
                 className="rounded-full bg-[#FF9A1F] px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_14px_30px_rgba(255,154,31,0.32)] transition hover:translate-y-[-1px]"
               >
-                Đặt xe ngay
+                {content.hero.ctaLabel}
               </Link>
-              <Link
-                href="/#tuyen-pho-bien"
-                className="rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur"
-              >
-                Xem lịch trình
-              </Link>
+              {content.hero.ctaSecondaryLabel && (
+                <Link
+                  href="/#tuyen-pho-bien"
+                  className="rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur"
+                >
+                  {content.hero.ctaSecondaryLabel}
+                </Link>
+              )}
             </div>
 
             <div className="mt-9 grid max-w-xl gap-5 sm:grid-cols-3">
@@ -237,11 +238,11 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
       </section>
 
       <section className="bg-[#EEF4FB]">
-        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-10 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 px-4 py-10">
           {featureItems.map((item, index) => (
             <div
               key={`${item.title}-${index}`}
-              className="rounded-3xl border border-[#D7E6FA] bg-white p-5 shadow-[0_14px_34px_rgba(30,99,193,0.10)]"
+              className="w-full rounded-3xl border border-[#D7E6FA] bg-white p-5 shadow-[0_14px_34px_rgba(30,99,193,0.10)] sm:w-[260px]"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF9A1F] text-base font-extrabold text-white shadow-[0_10px_22px_rgba(255,154,31,0.26)]">
                 {String(index + 1).padStart(2, '0')}
@@ -256,16 +257,14 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
       <section className="bg-white py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#FF9A1F]">Về xeghep.info</div>
+            <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-[#FF9A1F]">{about.eyebrow}</div>
             <h2 className="mt-3 max-w-xl font-heading text-2xl font-extrabold leading-tight text-[#14325D] md:text-3xl">
-              Nền tảng đặt xe ghép uy tín toàn quốc
+              {about.title}
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
-              xeghép.info là nền tảng kết nối hành khách với các nhà xe uy tín trên toàn quốc. Chúng tôi giúp bạn đặt xe ghép nhanh chóng, minh bạch và tiện lợi chỉ trong vài phút.
-            </p>
+            <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">{about.description}</p>
 
             <div className="mt-6 space-y-3">
-              {bullets.map((item) => (
+              {about.bullets.map((item) => (
                 <div key={item} className="flex items-center gap-3 text-[15px] font-bold text-[#14325D]">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#22C55E] text-sm font-bold text-white shadow-[0_8px_18px_rgba(34,197,94,0.25)]">
                     ✓
@@ -288,9 +287,8 @@ function Home({ tenant, content, routes, drivers }: ThemeHomeProps) {
               ★ 4.9 / 5.0
             </div>
             <div className="overflow-hidden rounded-[28px] border border-[#DCE9FA] bg-[#F6FAFF] p-3 shadow-[0_24px_56px_rgba(16,56,104,0.10)]">
-              {visualImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={visualImage} alt={tenant.brandName} className="h-[360px] w-full rounded-[22px] object-cover md:h-[420px]" />
+              {aboutImages.length > 0 ? (
+                <ImageSlideshow images={aboutImages} className="h-[360px] w-full rounded-[22px] md:h-[420px]" />
               ) : (
                 <div className="flex h-[360px] items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,#173E78,#2D8CFF)] text-center text-white/80 md:h-[420px]">
                   <div>

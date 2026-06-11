@@ -11,6 +11,13 @@ import { buildTenantMetadata, currentTenantFromHeaders } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
+/** Bọc mỗi <table> trong khung cuộn ngang để bảng rộng (từ Word) không vỡ layout. */
+function wrapTablesScrollable(html: string): string {
+  return html
+    .replace(/<table(\b[^>]*)>/gi, '<div style="overflow-x:auto;max-width:100%"><table$1>')
+    .replace(/<\/table>/gi, '</table></div>');
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const tenant = await currentTenantFromHeaders();
   const article = tenant ? await getArticleDetail(tenant.id, params.slug) : null;
@@ -38,10 +45,12 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
               // eslint-disable-next-line @next/next/no-img-element
               <img src={article.coverUrl} alt={article.title} className="mt-4 w-full rounded-2xl object-cover" />
             )}
-            {/* contentHtml ĐÃ được sanitize trước khi lưu (CLAUDE.md Mục 1.5) */}
+            {/* contentHtml ĐÃ được sanitize trước khi lưu (CLAUDE.md Mục 1.5).
+                Style trực tiếp cho thẻ con (link/heading/list/bảng...) vì dự án không dùng plugin typography.
+                Bọc <table> trong khung cuộn ngang để bảng rộng không vỡ layout trên mobile. */}
             <div
-              className="prose mt-6 max-w-none text-slate-700"
-              dangerouslySetInnerHTML={{ __html: article.contentHtml }}
+              className="mt-6 max-w-none text-[15px] leading-7 text-slate-700 [&_a]:font-medium [&_a]:text-[color:var(--brand)] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:text-slate-500 [&_h2]:mt-6 [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-800 [&_h3]:mt-5 [&_h3]:font-heading [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-800 [&_img]:my-4 [&_img]:rounded-xl [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_table]:my-5 [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_th]:border [&_th]:border-slate-300 [&_th]:bg-slate-100 [&_th]:p-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:text-slate-800 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2.5 [&_td]:align-top"
+              dangerouslySetInnerHTML={{ __html: wrapTablesScrollable(article.contentHtml) }}
             />
           </article>
 

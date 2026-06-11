@@ -9,9 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Be Vietnam Pro: body/UI; Sora: heading. Khai báo qua CSS variable từ next/font.
+        // Be Vietnam Pro cho cả body/UI lẫn heading — hỗ trợ tiếng Việt có dấu ĐẦY ĐỦ.
+        // (Trước dùng Sora cho heading nhưng Sora không có glyph tiếng Việt -> vỡ font.)
         sans: ['var(--font-be-vietnam-pro)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-sora)', 'var(--font-be-vietnam-pro)', 'sans-serif'],
+        heading: ['var(--font-be-vietnam-pro)', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { beVietnamPro, sora } from '@/lib/fonts';
+import { beVietnamPro } from '@/lib/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${beVietnamPro.variable} ${sora.variable}`}>
+    <html lang="vi" className={beVietnamPro.variable}>
       <body>{children}</body>
     </html>
   );

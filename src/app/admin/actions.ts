@@ -26,6 +26,7 @@ import {
   EntitlementError,
 } from '@/lib/entitlement';
 import { sanitizeArticleHtml } from '@/lib/sanitize';
+import { pickRandomArticleImages, insertBodyImageIfNone } from '@/lib/article-images';
 import { slugify } from '@/lib/slug';
 import { revalidateTenantPublic } from '@/lib/public-cache';
 import { rateLimit, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
@@ -360,13 +361,32 @@ export async function updateHomeContentAction(formData: FormData): Promise<void>
     const how = [0, 1, 2].map((i) => ({ title: str(formData, `how_title_${i}`), desc: str(formData, `how_desc_${i}`) })).filter((h) => h.title);
     const faq = [0, 1, 2].map((i) => ({ q: str(formData, `faq_q_${i}`), a: str(formData, `faq_a_${i}`) })).filter((f) => f.q);
 
+    const heroStats = [0, 1, 2]
+      .map((i) => ({ value: str(formData, `hero_stat_value_${i}`), label: str(formData, `hero_stat_label_${i}`) }))
+      .filter((s) => s.value);
+
     const data = {
-      hero: { title: str(formData, 'hero_title'), subtitle: str(formData, 'hero_subtitle'), ctaLabel: str(formData, 'hero_cta'), imageUrl: str(formData, 'hero_image') || undefined },
+      hero: {
+        title: str(formData, 'hero_title'),
+        subtitle: str(formData, 'hero_subtitle'),
+        ctaLabel: str(formData, 'hero_cta'),
+        ctaSecondaryLabel: str(formData, 'hero_cta2'),
+        badge: str(formData, 'hero_badge'),
+        stats: heroStats,
+        imageUrl: str(formData, 'hero_image') || undefined,
+      },
       banners,
       whyChooseUs: why,
       howToBook: how,
       faq,
       driverCta: { title: str(formData, 'cta_title'), desc: str(formData, 'cta_desc'), buttonLabel: str(formData, 'cta_button') },
+      about: {
+        eyebrow: str(formData, 'about_eyebrow'),
+        title: str(formData, 'about_title'),
+        description: str(formData, 'about_description'),
+        bullets: lines(str(formData, 'about_bullets')),
+        images: lines(str(formData, 'about_images')),
+      },
     };
 
     await db.homeContent.upsert({
@@ -383,20 +403,18 @@ export async function updateHomeContentAction(formData: FormData): Promise<void>
 
 // ---------------- Tin tức (Article) — chỉ Quản trị ----------------
 
-const COVER_PRESETS = [
-  'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800',
-  'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800',
-  'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800',
-];
-
 export async function upsertArticleAction(formData: FormData): Promise<void> {
   const id = str(formData, 'id');
   await withAdminAction({ adminOnly: true }, async ({ session }) => {
     const title = str(formData, 'title');
     const slug = str(formData, 'slug') || slugify(title) || `bai-${Date.now()}`;
-    const contentHtml = sanitizeArticleHtml(str(formData, 'contentHtml')); // SANITIZE trước khi lưu
     const status = str(formData, 'status') || 'draft';
-    const coverUrl = str(formData, 'coverUrl') || null;
+
+    // Ảnh: bìa = admin nhập hoặc lấy ngẫu nhiên từ KHO CỦA SITE NÀY; thân bài tự chèn 1 ảnh nếu chưa có.
+    const [coverPick, bodyPick] = pickRandomArticleImages(session.tenantId, 2);
+    const coverUrl = str(formData, 'coverUrl') || coverPick || null;
+    const rawHtml = insertBodyImageIfNone(str(formData, 'contentHtml'), bodyPick || coverPick || '');
+    const contentHtml = sanitizeArticleHtml(rawHtml); // SANITIZE trước khi lưu
     const payload = {
       title,
       slug,
@@ -427,6 +445,24 @@ export async function deleteArticleAction(formData: FormData): Promise<void> {
   revalidatePath('/admin/tin-tuc');
 }
 
+/**
+ * Sửa mojibake tên file: tên .docx tiếng Việt đôi khi bị đọc theo Latin-1 khi upload
+ * (vd "Ã©" thay vì "é"). Nếu chuỗi chỉ chứa ký tự <256 và có ký tự 128-255 (dấu hiệu byte
+ * UTF-8 bị giải nhầm) thì giải lại đúng UTF-8. Tên tiếng Việt đúng luôn có ký tự >=256
+ * (đ, các nguyên âm có dấu thanh) nên không bị đụng nhầm.
+ */
+function fixFilenameEncoding(name: string): string {
+  if (/[-ÿ]/.test(name) && !/[Ā-￿]/.test(name)) {
+    try {
+      const decoded = Buffer.from(name, 'latin1').toString('utf8');
+      if (!decoded.includes('�')) return decoded;
+    } catch {
+      /* giữ nguyên nếu giải mã lỗi */
+    }
+  }
+  return name;
+}
+
 /** Đăng bài bằng .docx (một hoặc nhiều file/thư mục). Convert -> sanitize -> tạo Article. */
 export async function importDocxAction(formData: FormData): Promise<void> {
   const files = formData.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
@@ -441,13 +477,16 @@ export async function importDocxAction(formData: FormData): Promise<void> {
       if (!file.name.toLowerCase().endsWith('.docx')) continue;
       const buffer = Buffer.from(await file.arrayBuffer());
       const { value: html } = await mammoth.convertToHtml({ buffer });
-      const contentHtml = sanitizeArticleHtml(html);
-      const title = file.name.replace(/\.docx$/i, '').trim() || `Bài viết ${i + 1}`;
+      const title = fixFilenameEncoding(file.name.replace(/\.docx$/i, '')).trim() || `Bài viết ${i + 1}`;
       let slug = slugify(title) || `bai-${Date.now()}-${i}`;
       // tránh trùng slug trong tenant
       const exists = await db.article.findFirst({ where: { slug } });
       if (exists) slug = `${slug}-${Date.now()}`;
-      const coverUrl = randomCover ? COVER_PRESETS[i % COVER_PRESETS.length]! : null;
+
+      // Ảnh ngẫu nhiên từ KHO CỦA SITE NÀY: 1 bìa + 1 ảnh chèn trong bài (nếu bài chưa có ảnh).
+      const [coverPick, bodyPick] = pickRandomArticleImages(session.tenantId, 2);
+      const coverUrl = randomCover ? coverPick ?? null : null;
+      const contentHtml = sanitizeArticleHtml(insertBodyImageIfNone(html, bodyPick || coverPick || ''));
 
       await db.article.create({
         data: {

@@ -30,6 +30,10 @@ services:
       PORT: 3000
     ports:
       - "${APP_PORT:-3001}:3000"
+    # Giữ ảnh tải lúc chạy (admin upload) qua mỗi lần rebuild: ảnh nằm trên ĐĨA HOST.
+    volumes:
+      - ./data/uploads:/app/public/uploads
+      - ./data/article-images:/app/public/article-images
     depends_on:
       db:
         condition: service_healthy

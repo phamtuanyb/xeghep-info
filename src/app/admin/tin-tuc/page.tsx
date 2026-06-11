@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { renderAdmin } from '@/lib/admin-render';
 import { Card, DeleteButton, FlashOk } from '@/components/admin/ui';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import ArticleImageLibrary from '@/components/admin/ArticleImageLibrary';
 import { upsertArticleAction, deleteArticleAction, importDocxAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +29,11 @@ export default async function NewsAdminPage({ searchParams }: { searchParams: { 
         </div>
 
         <FlashOk message={searchParams.saved ? 'Đã lưu bài viết.' : searchParams.imported ? `Đã nhập ${searchParams.imported} bài từ .docx.` : undefined} />
+
+        {/* Kho ảnh bài viết (riêng từng website) */}
+        <Card title="Kho ảnh bài viết (riêng website này)">
+          <ArticleImageLibrary />
+        </Card>
 
         {/* Import .docx */}
         <Card title="Đăng bằng file Word (.docx)">
@@ -54,8 +61,9 @@ export default async function NewsAdminPage({ searchParams }: { searchParams: { 
         <Card title="Soạn bài mới">
           <form action={upsertArticleAction} className="space-y-3">
             <input name="title" required placeholder="Tiêu đề" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <input name="coverUrl" placeholder="URL ảnh bìa (tùy chọn)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-            <textarea name="contentHtml" rows={6} placeholder="Nội dung (cho phép HTML cơ bản, sẽ được sanitize)" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <input name="coverUrl" placeholder="URL ảnh bìa — để trống sẽ tự lấy ngẫu nhiên từ kho ảnh" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <RichTextEditor name="contentHtml" />
+            <p className="text-xs text-slate-400">Ảnh bìa & 1 ảnh trong bài tự lấy ngẫu nhiên từ <strong>Kho ảnh bài viết</strong> của website này (mục phía trên) nếu bạn không tự thêm.</p>
             <div className="flex items-center gap-3">
               <select name="status" className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
                 <option value="draft">Lưu nháp</option>
@@ -91,7 +99,7 @@ export default async function NewsAdminPage({ searchParams }: { searchParams: { 
                   <input name="title" defaultValue={a.title} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
                   <input name="slug" defaultValue={a.slug} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
                   <input name="coverUrl" defaultValue={a.coverUrl ?? ''} placeholder="URL ảnh bìa" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-                  <textarea name="contentHtml" rows={5} defaultValue={a.contentHtml} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                  <RichTextEditor name="contentHtml" defaultValue={a.contentHtml} />
                   <div className="flex items-center gap-3">
                     <select name="status" defaultValue={a.status} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
                       <option value="draft">Nháp</option>

@@ -9,20 +9,46 @@ export type WhyItem = { title: string; desc?: string; icon?: string };
 export type HowStep = { title: string; desc?: string };
 export type FaqItem = { q: string; a: string };
 
+export type AboutSection = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  bullets: string[];
+  images: string[];
+};
+
+export type HeroStat = { value: string; label: string };
+
 export type HomeContentData = {
-  hero: { title: string; subtitle: string; ctaLabel: string; imageUrl?: string };
+  hero: {
+    title: string; // có thể nhiều dòng (\n) — theme hiển thị mỗi dòng, dòng cuối tô màu nhấn
+    subtitle: string;
+    ctaLabel: string;
+    ctaSecondaryLabel: string;
+    badge: string;
+    stats: HeroStat[];
+    imageUrl?: string;
+  };
   banners: Banner[];
   whyChooseUs: WhyItem[];
   howToBook: HowStep[];
   faq: FaqItem[];
   driverCta: { title: string; desc: string; buttonLabel: string };
+  about: AboutSection;
 };
 
 const DEFAULTS: HomeContentData = {
   hero: {
-    title: 'Đặt xe ghép nhanh chóng, an toàn',
+    title: 'Đặt xe\nNhanh chóng\nĐón trả tận nơi',
     subtitle: 'Kết nối tài xế đã xác thực — giá minh bạch, đón tận nơi.',
-    ctaLabel: 'Tìm chuyến ngay',
+    ctaLabel: 'Đặt xe ngay',
+    ctaSecondaryLabel: 'Xem lịch trình',
+    badge: 'Xe ghép toàn quốc',
+    stats: [
+      { value: '600+', label: 'chuyến mỗi ngày' },
+      { value: '4.9★', label: 'từ 12.000 đánh giá' },
+      { value: '12', label: 'tỉnh thành phủ sóng' },
+    ],
   },
   banners: [],
   whyChooseUs: [
@@ -44,6 +70,20 @@ const DEFAULTS: HomeContentData = {
     desc: 'Tham gia đội ngũ để nhận thêm chuyến và khách hàng.',
     buttonLabel: 'Đăng ký tài xế',
   },
+  about: {
+    eyebrow: 'Về chúng tôi',
+    title: 'Nền tảng đặt xe ghép uy tín toàn quốc',
+    description:
+      'Nền tảng kết nối hành khách với các nhà xe uy tín trên toàn quốc. Giúp bạn đặt xe ghép nhanh chóng, minh bạch và tiện lợi chỉ trong vài phút.',
+    bullets: [
+      'Đặt xe online 24/7',
+      'Đón trả tận nơi',
+      'Giá cả rõ ràng, minh bạch',
+      'Hàng trăm tuyến xe mỗi ngày',
+      'Đội ngũ hỗ trợ chuyên nghiệp',
+    ],
+    images: [],
+  },
 };
 
 function asArray<T>(v: unknown): T[] {
@@ -55,6 +95,14 @@ export function parseHomeContent(data: unknown): HomeContentData {
   const d = (data ?? {}) as Record<string, unknown>;
   const hero = (d.hero ?? {}) as Record<string, unknown>;
   const driverCta = (d.driverCta ?? {}) as Record<string, unknown>;
+  const about = (d.about ?? {}) as Record<string, unknown>;
+  const aboutBullets = asArray<unknown>(about.bullets).filter((b): b is string => typeof b === 'string' && b.length > 0);
+  const aboutImages = asArray<unknown>(about.images).filter((s): s is string => typeof s === 'string' && s.length > 0);
+
+  const heroStats = asArray<unknown>(hero.stats)
+    .map((s) => s as Record<string, unknown>)
+    .map((s) => ({ value: String(s.value ?? ''), label: String(s.label ?? '') }))
+    .filter((s) => s.value);
 
   // whyChooseUs có thể là string[] (seed cũ) hoặc {title,desc}[].
   const whyRaw = asArray<unknown>(d.whyChooseUs);
@@ -69,6 +117,9 @@ export function parseHomeContent(data: unknown): HomeContentData {
       title: (hero.title as string) || DEFAULTS.hero.title,
       subtitle: (hero.subtitle as string) || DEFAULTS.hero.subtitle,
       ctaLabel: (hero.ctaLabel as string) || DEFAULTS.hero.ctaLabel,
+      ctaSecondaryLabel: (hero.ctaSecondaryLabel as string) || DEFAULTS.hero.ctaSecondaryLabel,
+      badge: (hero.badge as string) || DEFAULTS.hero.badge,
+      stats: heroStats.length ? heroStats : DEFAULTS.hero.stats,
       imageUrl: (hero.imageUrl as string) || undefined,
     },
     banners: asArray<Banner>(d.banners),
@@ -79,6 +130,13 @@ export function parseHomeContent(data: unknown): HomeContentData {
       title: (driverCta.title as string) || DEFAULTS.driverCta.title,
       desc: (driverCta.desc as string) || DEFAULTS.driverCta.desc,
       buttonLabel: (driverCta.buttonLabel as string) || DEFAULTS.driverCta.buttonLabel,
+    },
+    about: {
+      eyebrow: (about.eyebrow as string) || DEFAULTS.about.eyebrow,
+      title: (about.title as string) || DEFAULTS.about.title,
+      description: (about.description as string) || DEFAULTS.about.description,
+      bullets: aboutBullets.length ? aboutBullets : DEFAULTS.about.bullets,
+      images: aboutImages,
     },
   };
 }
