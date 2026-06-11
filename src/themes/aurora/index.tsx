@@ -463,27 +463,18 @@ function PremiumHeroBookingForm({ hotline }: { hotline: string | null }) {
         <div>
           <LabelledField label="Chọn dịch vụ">
             <FieldWithIcon icon="▾">
-              <select name="serviceType" defaultValue="bao_7" className={fieldInputCls}>
+              <select name="serviceType" defaultValue="ghep_1" className={fieldInputCls}>
                 <option value="ghep_1">Ghép 1 ghế</option>
                 <option value="ghep_2">Ghép 2 ghế</option>
                 <option value="bao_5">Bao xe 5 chỗ</option>
                 <option value="bao_7">Bao xe 7 chỗ</option>
                 <option value="gui_do">Gửi đồ</option>
+                <option value="cuoi_hoi">Cưới hỏi</option>
+                <option value="du_lich">Du lịch</option>
               </select>
             </FieldWithIcon>
           </LabelledField>
         </div>
-
-        <LabelledField label="Ghi chú">
-          <FieldWithIcon icon="✎" alignTop>
-            <textarea
-              name="note"
-              rows={3}
-              placeholder="VD: đón tại nhà, có trẻ nhỏ, nhiều hành lý..."
-              className={`${fieldInputCls} resize-none py-3`}
-            />
-          </FieldWithIcon>
-        </LabelledField>
 
         <button
           type="submit"
