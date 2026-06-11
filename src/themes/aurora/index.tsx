@@ -461,12 +461,17 @@ function PremiumHeroBookingForm({ hotline }: { hotline: string | null }) {
         </LabelledField>
 
         <div>
-          <div className="mb-2 text-sm font-bold text-[#14325D]">Loại xe</div>
-          <div className="grid gap-2.5 md:grid-cols-3">
-            <VehicleOption value="bao_5" label="Xe 4 chỗ" icon="🚗" />
-            <VehicleOption value="bao_7" label="Xe 7 chỗ" icon="🚙" defaultChecked />
-            <VehicleOption value="ghep_1" label="Xe Limousine" />
-          </div>
+          <LabelledField label="Chọn dịch vụ">
+            <FieldWithIcon icon="▾">
+              <select name="serviceType" defaultValue="bao_7" className={fieldInputCls}>
+                <option value="ghep_1">Ghép 1 ghế</option>
+                <option value="ghep_2">Ghép 2 ghế</option>
+                <option value="bao_5">Bao xe 5 chỗ</option>
+                <option value="bao_7">Bao xe 7 chỗ</option>
+                <option value="gui_do">Gửi đồ</option>
+              </select>
+            </FieldWithIcon>
+          </LabelledField>
         </div>
 
         <LabelledField label="Ghi chú">
@@ -520,28 +525,6 @@ function FieldWithIcon({
       </span>
       {children}
     </div>
-  );
-}
-
-function VehicleOption({
-  value,
-  label,
-  icon,
-  defaultChecked = false,
-}: {
-  value: string;
-  label: string;
-  icon?: string;
-  defaultChecked?: boolean;
-}) {
-  return (
-    <label className="block cursor-pointer">
-      <input type="radio" name="serviceType" value={value} defaultChecked={defaultChecked} className="peer sr-only" />
-      <span className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-[#D4E4F9] bg-[#F7FAFF] px-3 text-center text-sm font-bold text-[#14325D] shadow-sm transition peer-checked:border-[var(--brand)] peer-checked:bg-[#EAF4FF] peer-checked:text-[var(--brand)] peer-checked:shadow-[0_10px_24px_rgba(30,136,229,0.18)]">
-        {icon && <span className="text-lg">{icon}</span>}
-        <span>{label}</span>
-      </span>
-    </label>
   );
 }
 
