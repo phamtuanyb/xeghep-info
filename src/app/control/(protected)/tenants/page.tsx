@@ -15,7 +15,7 @@ const STATUS_CLASS: Record<string, string> = {
   PENDING: 'bg-amber-100 text-amber-700',
 };
 
-export default async function TenantsPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function TenantsPage({ searchParams }: { searchParams: { error?: string; deleted?: string } }) {
   const [tenants, plans, rootDomain] = await Promise.all([
     dbAdmin.tenant.findMany({
       orderBy: { createdAt: 'desc' },
@@ -31,6 +31,11 @@ export default async function TenantsPage({ searchParams }: { searchParams: { er
 
       {searchParams.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{searchParams.error}</p>
+      )}
+      {searchParams.deleted && (
+        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+          Đã xóa vĩnh viễn người thuê <strong>{searchParams.deleted}</strong> cùng toàn bộ dữ liệu liên quan.
+        </p>
       )}
 
       {/* Tạo tenant mới */}

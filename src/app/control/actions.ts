@@ -5,6 +5,8 @@
  * MỌI action: kiểm tra SUPER_ADMIN ở server -> validate Zod -> thao tác qua dbAdmin
  * -> ghi PlatformAuditLog -> revalidate/redirect.
  */
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -13,6 +15,7 @@ import { hashPassword, verifyPlatformCredentials, setSessionCookie } from '@/lib
 import { requireSuperAdmin, AuthError } from '@/lib/rbac';
 import { logPlatform } from '@/lib/platform-audit';
 import { generateActivationCodes } from '@/lib/activation';
+import { sendPlatformLead } from '@/lib/telegram';
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -148,6 +151,51 @@ export async function setTenantStatusAction(formData: FormData): Promise<void> {
   await logPlatform(actor.userId, action, tenantId, { status });
   revalidatePath(`/control/tenants/${tenantId}`);
   revalidatePath('/control/tenants');
+}
+
+/**
+ * Xóa VĨNH VIỄN một người thuê và TOÀN BỘ dữ liệu của họ.
+ *
+ * Cô lập tuyệt đối: chỉ động tới dữ liệu của tenant này, không ảnh hưởng tenant khác
+ * hay dữ liệu cấp nền tảng (Plan, Theme, PlatformUser, PlatformSetting, LandingTemplate, mã kích hoạt).
+ *
+ * Cơ chế:
+ *  1. Mọi bảng nghiệp vụ đều có FK `tenantId ... onDelete: Cascade` -> `tenant.delete()` tự dọn sạch.
+ *  2. Ngoại lệ duy nhất chặn cascade: Trip.routeId -> Route ON DELETE RESTRICT.
+ *     => xóa Trip trước, rồi mới xóa tenant (lúc đó Route mới cascade được).
+ *  3. Xóa các thư mục ảnh tải lên theo tenant (uploads, article-images) trên đĩa host.
+ *  4. Yêu cầu gõ đúng slug để xác nhận (chống xóa nhầm).
+ */
+export async function deleteTenantAction(formData: FormData): Promise<void> {
+  const actor = await requireControlActor();
+  const tenantId = str(formData, 'tenantId');
+  const confirmSlug = str(formData, 'confirmSlug');
+
+  const tenant = await dbAdmin.tenant.findUnique({ where: { id: tenantId } });
+  if (!tenant) redirect('/control/tenants?error=' + encodeURIComponent('Không tìm thấy người thuê.'));
+
+  if (confirmSlug !== tenant.slug) {
+    redirect(
+      `/control/tenants/${tenantId}?error=` +
+        encodeURIComponent('Mã xác nhận không khớp. Hãy gõ đúng slug của người thuê để xóa.'),
+    );
+  }
+
+  // Xóa dữ liệu DB trong 1 transaction: Trip trước (vì Trip->Route RESTRICT), rồi cascade phần còn lại.
+  await dbAdmin.$transaction([
+    dbAdmin.trip.deleteMany({ where: { tenantId } }),
+    dbAdmin.tenant.delete({ where: { id: tenantId } }),
+  ]);
+
+  // Dọn ảnh tải lên theo tenant (best-effort — không chặn nếu thư mục không tồn tại).
+  const publicDir = path.join(process.cwd(), 'public');
+  for (const sub of ['uploads', 'article-images']) {
+    await rm(path.join(publicDir, sub, tenantId), { recursive: true, force: true }).catch(() => {});
+  }
+
+  await logPlatform(actor.userId, 'DELETE_TENANT', null, { tenantId, slug: tenant.slug, brandName: tenant.brandName });
+  revalidatePath('/control/tenants');
+  redirect('/control/tenants?deleted=' + encodeURIComponent(tenant.brandName));
 }
 
 export async function changePlanAction(formData: FormData): Promise<void> {
@@ -389,4 +437,78 @@ export async function toggleThemeAction(formData: FormData): Promise<void> {
   await dbAdmin.theme.update({ where: { id: themeId }, data: { isActive: !theme.isActive } });
   await logPlatform(actor.userId, 'TOGGLE_THEME', null, { key: theme.key, isActive: !theme.isActive });
   revalidatePath('/control/themes');
+}
+
+// ---------------- Cài đặt nền tảng: Telegram nhận lead (xeghep.info) ----------------
+
+export async function saveTelegramSettingsAction(formData: FormData): Promise<void> {
+  const actor = await requireControlActor();
+  const token = str(formData, 'telegramBotToken');
+  const chatId = str(formData, 'telegramChatId');
+
+  // Token để trống -> GIỮ NGUYÊN token cũ (không nhập lại mỗi lần, không lộ ra HTML).
+  const existing = await dbAdmin.platformSetting.findUnique({ where: { id: 'platform' } });
+  const newToken = token || existing?.telegramBotToken || null;
+
+  await dbAdmin.platformSetting.upsert({
+    where: { id: 'platform' },
+    update: { telegramBotToken: newToken, telegramChatId: chatId || null },
+    create: { id: 'platform', telegramBotToken: newToken, telegramChatId: chatId || null },
+  });
+  await logPlatform(actor.userId, 'UPDATE_PLATFORM_TELEGRAM', null, { hasToken: !!token, hasChatId: !!chatId });
+  revalidatePath('/control/cai-dat');
+  redirect('/control/cai-dat?saved=1');
+}
+
+export async function testTelegramAction(): Promise<void> {
+  await requireControlActor();
+  const result = await sendPlatformLead({
+    name: 'Gửi thử từ Control Plane',
+    phone: '— kiểm tra cấu hình —',
+    route: 'Nếu bạn nhận được tin này, Telegram đã hoạt động ✅',
+  });
+  const q = result === true ? 'test=ok' : result === 'unconfigured' ? 'test=unconfigured' : 'test=fail';
+  redirect('/control/cai-dat?' + q);
+}
+
+// ---------------- Mẫu giao diện trên trang gốc (xeghep.info) ----------------
+
+/** Chuẩn hóa link demo: thêm https:// nếu thiếu scheme (cho phép cả đường dẫn nội bộ /...). */
+function normalizeUrl(u: string): string | null {
+  const v = u.trim();
+  if (!v) return null;
+  if (v.startsWith('/') || /^https?:\/\//i.test(v)) return v;
+  return 'https://' + v;
+}
+
+export async function upsertLandingTemplateAction(formData: FormData): Promise<void> {
+  const actor = await requireControlActor();
+  const id = str(formData, 'id');
+  const data = {
+    name: str(formData, 'name') || 'Mẫu giao diện',
+    tag: str(formData, 'tag') === 'Free' ? 'Free' : 'Pro',
+    description: str(formData, 'description'),
+    imageUrl: str(formData, 'imageUrl') || null,
+    demoUrl: normalizeUrl(str(formData, 'demoUrl')),
+    sortOrder: Number(str(formData, 'sortOrder')) || 0,
+    isActive: formData.get('isActive') === 'on',
+  };
+  if (id) {
+    await dbAdmin.landingTemplate.update({ where: { id }, data });
+  } else {
+    await dbAdmin.landingTemplate.create({ data });
+  }
+  await logPlatform(actor.userId, 'UPSERT_LANDING_TEMPLATE', null, { id: id || null, name: data.name });
+  revalidatePath('/control/mau-giao-dien');
+  revalidatePath('/');
+  redirect('/control/mau-giao-dien?saved=1');
+}
+
+export async function deleteLandingTemplateAction(formData: FormData): Promise<void> {
+  const actor = await requireControlActor();
+  const id = str(formData, 'id');
+  await dbAdmin.landingTemplate.delete({ where: { id } });
+  await logPlatform(actor.userId, 'DELETE_LANDING_TEMPLATE', null, { id });
+  revalidatePath('/control/mau-giao-dien');
+  revalidatePath('/');
 }

@@ -22,6 +22,10 @@ export type PlatformAction =
   | 'UPDATE_PLAN'
   | 'CREATE_ACTIVATION_CODES'
   | 'REVOKE_ACTIVATION_CODE'
+  | 'UPDATE_PLATFORM_TELEGRAM'
+  | 'UPSERT_LANDING_TEMPLATE'
+  | 'DELETE_LANDING_TEMPLATE'
+  | 'DELETE_TENANT'
   | 'LOGIN';
 
 export async function logPlatform(

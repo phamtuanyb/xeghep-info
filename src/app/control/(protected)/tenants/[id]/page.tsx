@@ -10,6 +10,7 @@ import {
   updateCrmAction,
   updateFeatureOverridesAction,
   recordProPaymentAction,
+  deleteTenantAction,
 } from '../../../actions';
 
 export const dynamic = 'force-dynamic';
@@ -271,6 +272,36 @@ export default async function TenantDetailPage({
               ))}
             </ul>
           )}
+        </section>
+
+        {/* Vùng nguy hiểm — xóa vĩnh viễn người thuê */}
+        <section className="space-y-4 rounded-2xl border-2 border-red-200 bg-red-50 p-5 shadow-sm lg:col-span-2">
+          <h2 className="font-semibold text-red-700">Vùng nguy hiểm</h2>
+          <p className="text-sm text-red-700">
+            Xóa vĩnh viễn người thuê <strong>{tenant.brandName}</strong> và TOÀN BỘ dữ liệu liên quan:
+            chuyến, tuyến, tài xế, lead đặt xe, giao dịch, bài viết, mã giảm giá, nội dung trang chủ,
+            tài khoản nhân viên/khách, cùng ảnh đã tải lên. Thao tác này <strong>không thể hoàn tác</strong> và
+            không ảnh hưởng tới các người thuê khác.
+          </p>
+          <form action={deleteTenantAction} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="tenantId" value={tenant.id} />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-red-700">
+                Gõ slug <code className="rounded bg-white px-1 font-mono text-red-700">{tenant.slug}</code> để xác nhận
+              </label>
+              <input
+                type="text"
+                name="confirmSlug"
+                required
+                autoComplete="off"
+                placeholder={tenant.slug}
+                className="w-64 rounded-lg border border-red-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <button className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+              Xóa vĩnh viễn người thuê
+            </button>
+          </form>
         </section>
       </div>
     </div>

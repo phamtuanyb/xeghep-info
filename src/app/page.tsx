@@ -8,7 +8,8 @@ import { getPublicTenant } from '@/lib/public-tenant';
 import { getHomeBundle } from '@/lib/public-cache';
 import { getTheme } from '@/themes';
 import { buildTenantMetadata } from '@/lib/seo';
-import PlatformLanding from '@/components/public/PlatformLanding';
+import { dbAdmin } from '@/lib/db';
+import PlatformLanding, { type LandingTpl } from '@/components/public/PlatformLanding';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,19 @@ export default async function HomePage({
   searchParams: { sent?: string; error?: string };
 }) {
   // Tên miền gốc -> trang giới thiệu nền tảng (marketing MKT). Subdomain -> trang chủ nhà xe.
-  if (isPlatformRootHost()) return <PlatformLanding />;
+  if (isPlatformRootHost()) {
+    let templates: LandingTpl[] = [];
+    try {
+      templates = await dbAdmin.landingTemplate.findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { name: true, tag: true, description: true, imageUrl: true, demoUrl: true },
+      });
+    } catch {
+      /* DB lỗi -> landing vẫn render (gallery rỗng) */
+    }
+    return <PlatformLanding templates={templates} />;
+  }
 
   const tenant = await getPublicTenant();
   const bundle = await getHomeBundle(tenant.id);

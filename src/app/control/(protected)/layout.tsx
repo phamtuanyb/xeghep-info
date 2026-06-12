@@ -8,8 +8,10 @@ const NAV = [
   { href: '/control/ma-kich-hoat', label: 'Mã kích hoạt' },
   { href: '/control/plans', label: 'Gói dịch vụ' },
   { href: '/control/themes', label: 'Kho giao diện' },
+  { href: '/control/mau-giao-dien', label: 'Mẫu landing' },
   { href: '/control/reports', label: 'Báo cáo' },
   { href: '/control/audit', label: 'Nhật ký' },
+  { href: '/control/cai-dat', label: 'Cài đặt' },
 ];
 
 export default async function ControlLayout({ children }: { children: React.ReactNode }) {

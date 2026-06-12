@@ -214,6 +214,54 @@ const CSS = `
 #mkt-landing .tpl2{--s-bg:#0f1c2e;--s-text:#cfe0f0;--s-hero:linear-gradient(135deg,#0f2027,#203a43,#2c5364);--s-acc:#00E5C7;--s-ctatext:#04241f;--s-navtext:#9fe9dd}
 #mkt-landing .tpl3{--s-bg:#13132a;--s-text:#e8e2c8;--s-hero:linear-gradient(135deg,#1a1a2e,#0f3460);--s-acc:#FFD700;--s-ctatext:#1a1a2e;--s-herotext:#f5efd0;--s-navtext:#FFD700}
 #mkt-landing .tpl4{--s-bg:#ffffff;--s-text:#11253F;--s-hero:linear-gradient(160deg,#26A69A,#4DD0C4);--s-acc:#FF6F61;--s-nav:#fff;--s-navtext:#11253F;--s-herotext:#fff}
+.au-mini{height:100%;background:linear-gradient(135deg,#173E78,#1E63C1 55%,#2D8CFF);color:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-sans)}
+.au-mini .au-top{display:flex;align-items:center;justify-content:space-between;padding:9px 13px}
+.au-mini .au-logo{font-weight:900;font-size:12px;background:#fff;color:#14325D;padding:4px 9px;border-radius:7px}
+.au-mini .au-logo i{color:#FF9A1F;font-style:normal}
+.au-mini .au-cta{background:#FF9A1F;color:#fff;font-weight:800;padding:5px 11px;border-radius:999px;font-size:9px;letter-spacing:.02em}
+.au-mini .au-body{flex:1;display:grid;grid-template-columns:1.05fr .95fr;gap:10px;padding:4px 13px 13px}
+.au-mini .au-badge{display:inline-block;background:#FFD63D;color:#14325D;font-weight:800;font-size:8px;padding:3px 9px;border-radius:999px;letter-spacing:.04em}
+.au-mini .au-title{font-weight:900;font-size:16px;line-height:1.16;text-transform:uppercase;margin:8px 0 2px}
+.au-mini .au-sub{font-size:8.5px;opacity:.9;margin-bottom:7px}
+.au-mini .au-btns{display:flex;gap:6px}
+.au-mini .au-b1{background:#FF9A1F;color:#fff;font-weight:800;font-size:8px;padding:5px 10px;border-radius:999px}
+.au-mini .au-b2{border:1px solid rgba(255,255,255,.55);color:#fff;font-size:8px;padding:5px 10px;border-radius:999px}
+.au-mini .au-stats{display:flex;gap:12px;margin-top:11px}
+.au-mini .au-stats span{font-size:7.5px;color:rgba(255,255,255,.82);line-height:1.3}
+.au-mini .au-stats b{color:#FFD63D;font-size:14px;display:block}
+.au-mini .au-form{background:#fff;border-radius:11px;padding:10px;color:#14325D;display:flex;flex-direction:column;gap:6px;align-self:start;box-shadow:0 10px 24px rgba(10,46,99,.25)}
+.au-mini .au-fh{font-weight:900;font-size:11px}
+.au-mini .au-fl{font-size:7px;color:#7B8AA0;font-weight:600;margin-bottom:-3px}
+.au-mini .au-fi{height:11px;background:#F4F8FE;border:1px solid #E2E9F2;border-radius:5px}
+.au-mini .au-fb{background:#FF9A1F;color:#fff;font-weight:800;font-size:8px;text-align:center;padding:6px;border-radius:7px;margin-top:2px;letter-spacing:.02em}
+.mkt-modal .au-mini{min-height:360px}
+.mkt-modal .au-mini .au-title{font-size:26px}
+.mkt-modal .au-mini .au-sub{font-size:12px}
+.mkt-modal .au-mini .au-badge,.mkt-modal .au-mini .au-b1,.mkt-modal .au-mini .au-b2,.mkt-modal .au-mini .au-cta{font-size:11px}
+.mkt-modal .au-mini .au-stats span{font-size:11px}.mkt-modal .au-mini .au-stats b{font-size:20px}
+.mkt-modal .au-mini .au-fh{font-size:15px}.mkt-modal .au-mini .au-fi{height:16px}.mkt-modal .au-mini .au-fb{font-size:11px}.mkt-modal .au-mini .au-fl{font-size:10px}
+.md-mini{height:100%;background:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-sans);color:#11253F}
+.md-mini .md-top{display:flex;align-items:center;gap:8px;padding:8px 13px;border-bottom:1px solid #eef2f7}
+.md-mini .md-logo{font-weight:900;font-size:11px;color:#1565C0}
+.md-mini .md-nav{font-size:7.5px;color:#5a6478;font-weight:600;flex:1}
+.md-mini .md-login{font-size:8px;color:#5a6478;font-weight:600}
+.md-mini .md-cta{background:#1565C0;color:#fff;font-weight:800;font-size:8px;padding:4px 10px;border-radius:999px}
+.md-mini .md-hero{flex:1;position:relative;background:linear-gradient(120deg,#0e1c2e,#203a5c);display:grid;grid-template-columns:1fr .95fr;gap:10px;padding:14px 13px;color:#fff}
+.md-mini .md-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 28% 42%,rgba(255,255,255,.07),transparent 60%)}
+.md-mini .md-left{position:relative;z-index:1;align-self:center}
+.md-mini .md-title{font-weight:900;font-size:15px;line-height:1.18}
+.md-mini .md-sub{font-size:8px;opacity:.85;margin:5px 0 7px}
+.md-mini .md-pills{display:flex;gap:5px;flex-wrap:wrap}
+.md-mini .md-pills span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-size:7px;padding:3px 7px;border-radius:999px}
+.md-mini .md-form{position:relative;z-index:1;background:#fff;border-radius:10px;padding:9px;color:#11253F;display:flex;flex-direction:column;gap:5px;align-self:start;box-shadow:0 12px 26px rgba(0,0,0,.28)}
+.md-mini .md-fh{font-weight:900;font-size:10px;margin-bottom:1px}
+.md-mini .md-row{display:flex;gap:5px}
+.md-mini .md-fi{height:10px;background:#F4F8FE;border:1px solid #E2E9F2;border-radius:5px;flex:1}
+.md-mini .md-fb{background:#1565C0;color:#fff;font-weight:800;font-size:8px;text-align:center;padding:6px;border-radius:6px;margin-top:2px}
+.mkt-modal .md-mini{min-height:360px}
+.mkt-modal .md-mini .md-title{font-size:24px}.mkt-modal .md-mini .md-sub{font-size:11px}
+.mkt-modal .md-mini .md-fh{font-size:14px}.mkt-modal .md-mini .md-fi{height:15px}.mkt-modal .md-mini .md-fb{font-size:11px}
+.mkt-modal .md-mini .md-pills span{font-size:10px}.mkt-modal .md-mini .md-cta,.mkt-modal .md-mini .md-login{font-size:11px}.mkt-modal .md-mini .md-logo{font-size:14px}.mkt-modal .md-mini .md-nav{font-size:10px}
 #mkt-landing .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 #mkt-landing .feat{background:#fff;border-radius:var(--r-md);padding:30px 26px;box-shadow:var(--sh-sm);border:1px solid var(--line);transition:var(--transition)}
 #mkt-landing .feat:hover{transform:translateY(-6px);box-shadow:var(--sh-lg)}
@@ -355,6 +403,38 @@ const CSS = `
 }
 `;
 
+/** Mẫu giao diện do Control Plane quản lý (ảnh + link demo). */
+export type LandingTpl = { name: string; tag: string; description: string; imageUrl: string | null; demoUrl: string | null };
+
+function esc(s: string): string {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Dựng HTML các thẻ "Mẫu giao diện" từ dữ liệu DB — ảnh xem trước + link mở website thật. */
+function galleryHtml(templates: LandingTpl[]): string {
+  if (!templates.length) {
+    return '<p style="grid-column:1/-1;text-align:center;color:var(--ink-faint);font-weight:500">Chưa có mẫu giao diện. Thêm trong Control Plane → Mẫu landing.</p>';
+  }
+  return templates
+    .map((t) => {
+      const tag =
+        t.tag === 'Free'
+          ? '<span class="tpl-tag tag-free">Free</span>'
+          : '<span class="tpl-tag tag-pro">Pro</span>';
+      const prev = t.imageUrl
+        ? `<img src="${esc(t.imageUrl)}" alt="${esc(t.name)}" style="width:100%;height:100%;object-fit:cover">`
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1565C0,#64B5F6);color:#fff;font-weight:800;font-size:18px;text-align:center;padding:0 16px">${esc(t.name)}</div>`;
+      const href = t.demoUrl ? esc(t.demoUrl) : '';
+      const open = href ? `<a class="tpl-prev" style="display:block" href="${href}" target="_blank" rel="noopener">` : '<div class="tpl-prev">';
+      const close = href ? '</a>' : '</div>';
+      const btn = href
+        ? `<a class="tpl-btn" href="${href}" target="_blank" rel="noopener">Xem mẫu</a>`
+        : '<span class="tpl-btn" style="opacity:.5;cursor:default">Chưa có demo</span>';
+      return `<div class="tpl-card reveal">${open}${prev}<div class="open-hint"><span><svg class="ic"><use href="#i-eye"/></svg> Mở website thật</span></div>${close}<div class="tpl-meta"><div><h3>${esc(t.name)} ${tag}</h3><p>${esc(t.description)}</p></div>${btn}</div></div>`;
+    })
+    .join('');
+}
+
 const BODY = `
 <header id="hdr">
   <div class="container nav">
@@ -468,37 +548,8 @@ const BODY = `
 
 <section class="sec sec-light" id="mau-giao-dien">
   <div class="container">
-    <div class="sec-head reveal"><span class="eyebrow">Mẫu giao diện website</span><h2>Chọn giao diện đẹp – website của bạn lên sóng ngay</h2><p>Bấm "Xem mẫu" để xem trước từng giao diện. Gói Free dùng mẫu mặc định, gói Pro được chọn 1 trong các mẫu cao cấp và đổi bất cứ lúc nào — không mất dữ liệu đã nhập.</p></div>
-    <div class="tpl-grid">
-      <div class="tpl-card reveal">
-        <div class="tpl-prev" data-tpl="tpl1">
-          <div class="site tpl1"><div class="site-nav"><span class="s-logo">Nhà Xe Năng Động</span><span class="s-links">Tuyến · Đặt xe · Liên hệ</span></div><div class="site-hero"><h4>Đặt xe ghép nhanh, an toàn, đúng giờ</h4><p>Tuyến phổ biến khắp miền Bắc</p><span class="s-cta">Tìm chuyến ngay</span></div><div class="site-search"><span class="si">📍 Điểm đi → Điểm đến</span><span class="sb">Tìm</span></div></div>
-          <div class="open-hint"><span><svg class="ic"><use href="#i-eye"/></svg> Xem mẫu này</span></div>
-        </div>
-        <div class="tpl-meta"><div><h3>Mẫu Năng Động <span class="tpl-tag tag-free">Free</span></h3><p>Phong cách trẻ trung, gradient xanh – cam đặc trưng MKT.</p></div><button class="tpl-btn" data-tpl="tpl1">Xem mẫu</button></div>
-      </div>
-      <div class="tpl-card reveal">
-        <div class="tpl-prev" data-tpl="tpl2">
-          <div class="site tpl2"><div class="site-nav"><span class="s-logo">Xanh Express</span><span class="s-links">Tuyến · Đặt xe · Liên hệ</span></div><div class="site-hero"><h4>Di chuyển hiện đại, kết nối tức thì</h4><p>Công nghệ đặt xe thông minh</p><span class="s-cta">Bắt đầu</span></div><div class="site-search"><span class="si">📍 Điểm đi → Điểm đến</span><span class="sb">Tìm</span></div></div>
-          <div class="open-hint"><span><svg class="ic"><use href="#i-eye"/></svg> Xem mẫu này</span></div>
-        </div>
-        <div class="tpl-meta"><div><h3>Mẫu Hiện Đại <span class="tpl-tag tag-pro">Pro</span></h3><p>Tông tối sang trọng, điểm nhấn xanh ngọc công nghệ.</p></div><button class="tpl-btn" data-tpl="tpl2">Xem mẫu</button></div>
-      </div>
-      <div class="tpl-card reveal">
-        <div class="tpl-prev" data-tpl="tpl3">
-          <div class="site tpl3"><div class="site-nav"><span class="s-logo">Hoàng Gia Limousine</span><span class="s-links">Tuyến · Đặt xe · Liên hệ</span></div><div class="site-hero"><h4>Trải nghiệm di chuyển đẳng cấp</h4><p>Dịch vụ xe ghép cao cấp</p><span class="s-cta">Đặt chỗ VIP</span></div><div class="site-search"><span class="si">📍 Điểm đi → Điểm đến</span><span class="sb">Tìm</span></div></div>
-          <div class="open-hint"><span><svg class="ic"><use href="#i-eye"/></svg> Xem mẫu này</span></div>
-        </div>
-        <div class="tpl-meta"><div><h3>Mẫu Cao Cấp <span class="tpl-tag tag-pro">Pro</span></h3><p>Navy – vàng gold sang trọng, hợp xe limousine/VIP.</p></div><button class="tpl-btn" data-tpl="tpl3">Xem mẫu</button></div>
-      </div>
-      <div class="tpl-card reveal">
-        <div class="tpl-prev" data-tpl="tpl4">
-          <div class="site tpl4"><div class="site-nav"><span class="s-logo">Quê Hương Xe Ghép</span><span class="s-links">Tuyến · Đặt xe · Liên hệ</span></div><div class="site-hero"><h4>Về nhà thật gần, thật vui</h4><p>Xe ghép thân thiện, giá tốt</p><span class="s-cta">Tìm chuyến</span></div><div class="site-search"><span class="si">📍 Điểm đi → Điểm đến</span><span class="sb">Tìm</span></div></div>
-          <div class="open-hint"><span><svg class="ic"><use href="#i-eye"/></svg> Xem mẫu này</span></div>
-        </div>
-        <div class="tpl-meta"><div><h3>Mẫu Tươi Sáng <span class="tpl-tag tag-pro">Pro</span></h3><p>Nền sáng, bo tròn thân thiện, tông xanh ngọc – cam san hô.</p></div><button class="tpl-btn" data-tpl="tpl4">Xem mẫu</button></div>
-      </div>
-    </div>
+    <div class="sec-head reveal"><span class="eyebrow">Mẫu giao diện website</span><h2>Chọn giao diện đẹp – website của bạn lên sóng ngay</h2><p>Bấm "Xem mẫu" để mở website thật của từng giao diện. Gói Free dùng mẫu mặc định, gói Pro chọn 1 trong các mẫu cao cấp và đổi bất cứ lúc nào — không mất dữ liệu đã nhập.</p></div>
+    <div class="tpl-grid"><!--TPL_GALLERY--></div>
   </div>
 </section>
 
@@ -638,17 +689,9 @@ const BODY = `
   <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></symbol>
 </defs></svg>
-
-<div class="mkt-modal" id="tplModal">
-  <div class="modal-box">
-    <div class="modal-bar"><span class="d d1"></span><span class="d d2"></span><span class="d d3"></span><span class="url" id="mUrl">xeghep-cuaban.vn</span><button class="close" id="mClose" aria-label="Đóng"><svg class="ic"><use href="#i-x"/></svg></button></div>
-    <div class="modal-scroll" id="mBody"></div>
-    <div class="modal-foot"><div class="mf-name" id="mName">Mẫu giao diện<small id="mDesc"></small></div><a href="#dang-ky" class="btn btn-primary" id="mUse">Dùng mẫu này <svg class="ic"><use href="#i-arrow"/></svg></a></div>
-  </div>
-</div>
 `;
 
-export default function PlatformLanding() {
+export default function PlatformLanding({ templates = [] }: { templates?: LandingTpl[] }) {
   useEffect(() => {
     const root = document.getElementById('mkt-landing');
     if (!root) return;
@@ -704,75 +747,57 @@ export default function PlatformLanding() {
     root.querySelectorAll('.count-up').forEach((c) => cObs.observe(c));
     cleanups.push(() => cObs.disconnect());
 
-    // Lead form (demo). TODO: gửi {name,phone,route} về Telegram/CRM của MKT.
-    const leadBtn = root.querySelector('#leadBtn');
-    leadBtn?.addEventListener('click', () => {
-      const name = (root.querySelector('#f-name') as HTMLInputElement)?.value.trim();
-      const phone = (root.querySelector('#f-phone') as HTMLInputElement)?.value.trim();
+    // Lead form -> gửi về Telegram của MKT qua /api/platform-lead.
+    const leadBtn = root.querySelector('#leadBtn') as HTMLButtonElement | null;
+    leadBtn?.addEventListener('click', async () => {
+      const name = (root.querySelector('#f-name') as HTMLInputElement)?.value.trim() || '';
+      const phone = (root.querySelector('#f-phone') as HTMLInputElement)?.value.trim() || '';
+      const route = (root.querySelector('#f-route') as HTMLInputElement)?.value.trim() || '';
       const note = root.querySelector('#formNote') as HTMLElement;
       if (!note) return;
       if (!name || !phone) { note.textContent = '⚠️ Vui lòng nhập họ tên và số điện thoại.'; note.style.color = '#FFD700'; return; }
-      note.textContent = '✅ Cảm ơn ' + name + '! Chúng tôi sẽ liên hệ với bạn sớm nhất.';
-      note.style.color = '#7CFC9A';
+
+      const original = leadBtn.innerHTML;
+      leadBtn.disabled = true;
+      leadBtn.style.opacity = '.7';
+      note.textContent = 'Đang gửi…'; note.style.color = '#fff';
+      try {
+        const res = await fetch('/api/platform-lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, route }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          note.textContent = '✅ Cảm ơn ' + name + '! Chúng tôi sẽ liên hệ với bạn sớm nhất.';
+          note.style.color = '#7CFC9A';
+          (root.querySelector('#f-name') as HTMLInputElement).value = '';
+          (root.querySelector('#f-phone') as HTMLInputElement).value = '';
+          (root.querySelector('#f-route') as HTMLInputElement).value = '';
+        } else {
+          note.textContent = '⚠️ ' + (data.error || 'Gửi thất bại, vui lòng thử lại.');
+          note.style.color = '#FFD700';
+        }
+      } catch {
+        note.textContent = '⚠️ Không kết nối được máy chủ, vui lòng gọi hotline.';
+        note.style.color = '#FFD700';
+      } finally {
+        leadBtn.disabled = false;
+        leadBtn.style.opacity = '';
+        leadBtn.innerHTML = original;
+      }
     });
-
-    // Modal xem mẫu
-    type Tpl = { name: string; tag: string; desc: string; logo: string; h: string; p: string; cta: string };
-    const TPL: Record<string, Tpl> = {
-      tpl1: { name: 'Mẫu Năng Động', tag: 'Free', desc: 'Phong cách trẻ trung, gradient xanh – cam đặc trưng MKT.', logo: 'Nhà Xe Năng Động', h: 'Đặt xe ghép nhanh, an toàn, đúng giờ', p: 'Tuyến phổ biến khắp miền Bắc', cta: 'Tìm chuyến ngay' },
-      tpl2: { name: 'Mẫu Hiện Đại', tag: 'Pro', desc: 'Tông tối sang trọng, điểm nhấn xanh ngọc công nghệ.', logo: 'Xanh Express', h: 'Di chuyển hiện đại, kết nối tức thì', p: 'Công nghệ đặt xe thông minh', cta: 'Bắt đầu' },
-      tpl3: { name: 'Mẫu Cao Cấp', tag: 'Pro', desc: 'Navy – vàng gold sang trọng, hợp xe limousine/VIP.', logo: 'Hoàng Gia Limousine', h: 'Trải nghiệm di chuyển đẳng cấp', p: 'Dịch vụ xe ghép cao cấp', cta: 'Đặt chỗ VIP' },
-      tpl4: { name: 'Mẫu Tươi Sáng', tag: 'Pro', desc: 'Nền sáng, bo tròn thân thiện, tông xanh ngọc – cam san hô.', logo: 'Quê Hương Xe Ghép', h: 'Về nhà thật gần, thật vui', p: 'Xe ghép thân thiện, giá tốt', cta: 'Tìm chuyến' },
-    };
-    const modal = root.querySelector('#tplModal');
-    const mBody = root.querySelector('#mBody');
-    const mName = root.querySelector('#mName');
-    const mDesc = root.querySelector('#mDesc');
-    const mUrl = root.querySelector('#mUrl');
-
-    const openTpl = (id: string) => {
-      const t = TPL[id];
-      if (!t || !modal || !mBody) return;
-      if (mName && mName.childNodes[0]) mName.childNodes[0].nodeValue = t.name + ' ';
-      if (mDesc) mDesc.textContent = (t.tag === 'Free' ? 'Gói Free · ' : 'Gói Pro · ') + t.desc;
-      if (mUrl) mUrl.textContent = t.logo.toLowerCase().normalize('NFD').replace(/[^a-z]+/g, '') + '.vn';
-      mBody.innerHTML =
-        '<div class="site tpl-full ' + id + '">' +
-        '<div class="site-nav"><span class="s-logo">' + t.logo + '</span><span class="s-links">Trang chủ · Tuyến xe · Đặt chỗ · Tin tức · Liên hệ</span></div>' +
-        '<div class="site-hero"><h4>' + t.h + '</h4><p>' + t.p + '</p><span class="s-cta">' + t.cta + '</span></div>' +
-        '<div class="site-search"><span class="si">📍 Điểm đi → Điểm đến · Ngày đi</span><span class="sb">Tìm chuyến</span></div>' +
-        '<div class="tf-routes">' +
-        '<div class="rt"><span><b>Hà Nội → Yên Bái</b><small>07:00 · còn 3 ghế</small></span><span class="p">180.000đ</span></div>' +
-        '<div class="rt"><span><b>Yên Bái → Hà Nội</b><small>13:30 · còn 2 ghế</small></span><span class="p">180.000đ</span></div>' +
-        '<div class="rt"><span><b>Hà Nội → Lào Cai</b><small>20:00 · còn 5 ghế</small></span><span class="p">250.000đ</span></div>' +
-        '</div>' +
-        '<div class="tf-feats">' +
-        '<div class="ff"><svg class="ic" style="stroke:var(--s-acc)"><use href="#i-badge"/></svg><div>Tài xế xác thực</div></div>' +
-        '<div class="ff"><svg class="ic" style="stroke:var(--s-acc)"><use href="#i-clock"/></svg><div>Đặt chỗ 24/7</div></div>' +
-        '<div class="ff"><svg class="ic" style="stroke:var(--s-acc)"><use href="#i-star"/></svg><div>Đánh giá thật</div></div>' +
-        '</div></div>';
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    };
-    const closeTpl = () => { modal?.classList.remove('show'); document.body.style.overflow = ''; };
-
-    root.querySelectorAll('[data-tpl]').forEach((el) => {
-      el.addEventListener('click', () => openTpl((el as HTMLElement).dataset.tpl || ''));
-    });
-    root.querySelector('#mClose')?.addEventListener('click', closeTpl);
-    root.querySelector('#mUse')?.addEventListener('click', closeTpl);
-    modal?.addEventListener('click', (e) => { if (e.target === modal) closeTpl(); });
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeTpl(); };
-    document.addEventListener('keydown', onKey);
-    cleanups.push(() => document.removeEventListener('keydown', onKey));
 
     return () => cleanups.forEach((fn) => fn());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const body = BODY.replace('<!--TPL_GALLERY-->', galleryHtml(templates));
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div id="mkt-landing" dangerouslySetInnerHTML={{ __html: BODY }} />
+      <div id="mkt-landing" dangerouslySetInnerHTML={{ __html: body }} />
     </>
   );
 }

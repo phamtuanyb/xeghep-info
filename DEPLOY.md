@@ -66,10 +66,13 @@ PLATFORM_SERVER_IP=<IP_VPS>          # hiện trong hướng dẫn DNS cho khác
 APP_PORT=3001
 
 # Tích hợp (tuỳ chọn)
-TELEGRAM_BOT_TOKEN=
+TELEGRAM_BOT_TOKEN=                  # token bot Telegram (BotFather)
+PLATFORM_TELEGRAM_CHAT_ID=          # chat id nhận LEAD từ trang gốc xeghep.info (Telegram MKT)
 RESEND_API_KEY=
 REDIS_URL=
 ```
+
+> Lấy `PLATFORM_TELEGRAM_CHAT_ID`: tạo bot ở @BotFather (ra `TELEGRAM_BOT_TOKEN`), thêm bot vào group nhận lead, gửi 1 tin trong group, mở `https://api.telegram.org/bot<TOKEN>/getUpdates` để xem `chat.id` (group thường là số âm).
 
 > `DATABASE_URL`/`DIRECT_URL` do compose tự đặt (trỏ vào service `db`), không cần khai ở đây.
 

@@ -34,6 +34,7 @@ services:
     volumes:
       - ./data/uploads:/app/public/uploads
       - ./data/article-images:/app/public/article-images
+      - ./data/landing:/app/public/landing
     depends_on:
       db:
         condition: service_healthy

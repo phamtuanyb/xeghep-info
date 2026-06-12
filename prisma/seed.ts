@@ -87,6 +87,19 @@ async function main() {
     create: { key: 'theme-c', name: 'Giao diện Hoàng hôn', minPlan: PlanName.PRO, isActive: true },
   });
 
+  // ---------- Mẫu giao diện trên trang giới thiệu gốc (Super Admin quản lý) ----------
+  const landingCount = await prisma.landingTemplate.count();
+  if (landingCount === 0) {
+    await prisma.landingTemplate.createMany({
+      data: [
+        { name: 'Mẫu Hiện Đại', tag: 'Free', description: 'Hero ảnh xe nổi bật, form đặt chuyến ngay trên trang chủ, bố cục sạch hiện đại.', sortOrder: 1 },
+        { name: 'Mẫu Năng Động', tag: 'Pro', description: 'Hero gradient xanh nổi bật, nút cam, form đặt xe ngay trên trang chủ.', sortOrder: 2 },
+        { name: 'Mẫu Tối Giản', tag: 'Pro', description: 'Nền trắng, viền mảnh, gọn gàng, tập trung nội dung.', sortOrder: 3 },
+        { name: 'Mẫu Hoàng Hôn', tag: 'Pro', description: 'Tông cam ấm áp, hero gradient hoàng hôn, thân thiện.', sortOrder: 4 },
+      ],
+    });
+  }
+
   // ---------- Super Admin (cấp nền tảng) ----------
   const superAdmin = await prisma.platformUser.upsert({
     where: { email: 'admin@xeghep-mkt.vn' },

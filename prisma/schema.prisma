@@ -136,6 +136,31 @@ model PlatformAuditLog {
   @@index([actorId])
 }
 
+// Cấu hình cấp NỀN TẢNG (một bản ghi duy nhất, id cố định 'platform').
+// Hiện chứa Telegram nhận lead từ trang giới thiệu gốc xeghep.info. Chỉ SUPER_ADMIN sửa.
+model PlatformSetting {
+  id               String   @id @default("platform")
+  telegramBotToken String?
+  telegramChatId   String?
+  updatedAt        DateTime @updatedAt
+}
+
+// Mẫu giao diện hiển thị trên trang giới thiệu gốc xeghep.info ("Mẫu giao diện website").
+// Super Admin quản lý trong Control Plane: ảnh xem trước + link website demo live.
+model LandingTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  tag         String   @default("Pro") // Free | Pro
+  description String   @default("")
+  imageUrl    String? // ảnh xem trước (tải lên)
+  demoUrl     String? // link website live để khách bấm xem
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([isActive, sortOrder])
+}
+
 // Mã kích hoạt cấp tenant (PHA 2 onboarding tự động). Khách mua MKT nhập mã ->
 // tự tạo tenant + subdomain. Bảng cấp nền tảng — chỉ truy cập qua dbAdmin.
 model ActivationCode {

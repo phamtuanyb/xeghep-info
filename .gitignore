@@ -45,5 +45,7 @@ prisma/*.db
 /public/uploads/
 # Ảnh bài viết admin tải lên (theo tenant) — giữ README, bỏ ảnh
 /public/article-images/*/
+# Ảnh "Mẫu giao diện" tải lên từ Control Plane
+/public/landing/
 # Dữ liệu runtime khi deploy Docker (DB dump, volume ảnh)
 /data/
